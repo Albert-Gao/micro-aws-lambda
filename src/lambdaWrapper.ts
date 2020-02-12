@@ -3,6 +3,7 @@ import {
   addExtraInfoToError,
   createTraceInfo,
   addTraceInfoToJsonString,
+  logRequestInfo,
 } from './utils';
 import { LambdaWrapperParams, LambdaHandler } from 'types';
 import { success, isHttpResponse } from './httpResponse';
@@ -14,6 +15,10 @@ export const lambdaWrapper = ({
   config,
 }: LambdaWrapperParams) => {
   const wrapperHandler: LambdaHandler = async (event, context, _) => {
+    if (config?.logRequestInfo) {
+      logRequestInfo(event, context);
+    }
+
     try {
       const response = await funcQueueExecutor(
         event,
@@ -46,20 +51,7 @@ export const lambdaWrapper = ({
       let newError = error;
 
       if (config?.addTraceInfoToResponse) {
-        addExtraInfoToError(newError, context, event);
-      }
-
-      if (config?.logRequestInfo) {
-        console.log('EVENT: ', event);
-        console.log('CONTEXT: ', context);
-        console.log(
-          'Aws-Api-Gateway-Request-Id: ',
-          event.requestContext.requestId
-        );
-        console.log(
-          'Identity-Source-Ip: ',
-          event.requestContext.identity.sourceIp
-        );
+        addExtraInfoToError(event, context, newError);
       }
 
       return newError;

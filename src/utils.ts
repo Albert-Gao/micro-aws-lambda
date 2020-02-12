@@ -89,9 +89,9 @@ export const addTraceInfoToJsonString = (
 };
 
 export const addExtraInfoToError = (
-  error: HttpError,
+  event: APIGatewayProxyEvent,
   context: Context,
-  event: APIGatewayProxyEvent
+  error: HttpError
 ) => {
   const traceInfo = createTraceInfo(event, context);
   const isHttpError = error.setBody && typeof error.setBody === 'function';
@@ -105,4 +105,14 @@ export const addExtraInfoToError = (
     ...error,
     ...traceInfo,
   };
+};
+
+export const logRequestInfo = (
+  event: APIGatewayProxyEvent,
+  context: Context
+) => {
+  console.log('EVENT: ', event);
+  console.log('CONTEXT: ', context);
+  console.log('Aws-Api-Gateway-Request-Id: ', event.requestContext.requestId);
+  console.log('Identity-Source-Ip: ', event.requestContext.identity.sourceIp);
 };

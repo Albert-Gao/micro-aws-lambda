@@ -1,6 +1,10 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { PlainObject } from 'types';
 
+interface HttpResponseParams extends Omit<APIGatewayProxyResult, 'body'> {
+  body: any;
+}
+
 const commonHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Credentials': true,
@@ -61,7 +65,7 @@ export const httpError = ({
   statusCode = 400,
   body,
   headers,
-}: APIGatewayProxyResult) =>
+}: Partial<HttpResponseParams>) =>
   new HttpError({ statusCode, body, headers: getMergedHeaders(headers) });
 
 export const httpResponse = ({
@@ -70,7 +74,7 @@ export const httpResponse = ({
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: APIGatewayProxyResult): APIGatewayProxyResult => ({
+}: Partial<HttpResponseParams>): APIGatewayProxyResult => ({
   statusCode,
   body: JSON.stringify(body),
   headers: getMergedHeaders(headers),
@@ -84,7 +88,7 @@ export const success = ({
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: APIGatewayProxyResult): APIGatewayProxyResult => ({
+}: Partial<HttpResponseParams>): APIGatewayProxyResult => ({
   statusCode,
   headers: getMergedHeaders(headers),
   body: JSON.stringify(body),
@@ -98,7 +102,7 @@ export const badRequest = ({
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: APIGatewayProxyResult) =>
+}: Partial<HttpResponseParams>) =>
   new HttpError({
     statusCode,
     body,
@@ -113,7 +117,7 @@ export const internalError = ({
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: APIGatewayProxyResult) =>
+}: Partial<HttpResponseParams>) =>
   new HttpError({
     statusCode,
     body,
@@ -124,4 +128,5 @@ export const internalError = ({
 
 export const isHttpResponse = (
   response: PlainObject | APIGatewayProxyResult
-): response is APIGatewayProxyResult => 'statusCode' in response;
+): response is APIGatewayProxyResult =>
+  'statusCode' in response && 'headers' in response;
