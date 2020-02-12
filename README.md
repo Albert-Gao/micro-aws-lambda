@@ -1,4 +1,4 @@
-# Easy Lambda
+# Micro Lambda
 
 ## Intro
 
@@ -17,6 +17,6 @@
   - Adding debug info to response object
   - console.log event / context
 
-## Credits:
+## Credits
 
 This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
