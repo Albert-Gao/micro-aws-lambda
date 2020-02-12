@@ -11,7 +11,8 @@
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "prepare": "tsdx build",
+    "np:publish": "np --no-publish && npm publish"
   },
   "peerDependencies": {},
   "husky": {
