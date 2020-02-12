@@ -1,9 +1,12 @@
+# **Will be available soon!**
+
 # Micro Lambda
 
 ## Intro
 
 - Ready to go Lambda Proxy library
-- Zero dependencies
+- Written in Typescript
+- Zero runtime dependencies
 - Tiny: 7KB after minified
 - Extendable with middlewares
   - before (handler) hooks
