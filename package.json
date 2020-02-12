@@ -14,6 +14,10 @@
     "prepare": "tsdx build",
     "np:publish": "np --no-publish && npm publish"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Albert-Gao/micro-lambda"
+  },
   "peerDependencies": {},
   "husky": {
     "hooks": {
