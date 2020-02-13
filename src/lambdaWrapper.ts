@@ -14,7 +14,8 @@ export const lambdaWrapper = ({
   afterHooks,
   config,
 }: LambdaWrapperParams) => {
-  const wrapperHandler: LambdaHandler = async (event, context, _) => {
+  // @ts-ignore
+  const wrapperHandler: LambdaHandler = async (event, context, callback) => {
     if (config?.logRequestInfo) {
       logRequestInfo(event, context);
     }
@@ -33,7 +34,10 @@ export const lambdaWrapper = ({
         typeof ((response as unknown) as HttpError).toHttpResponse ===
           'function'
       ) {
-        return ((response as unknown) as HttpError).toHttpResponse();
+        return callback(
+          null,
+          ((response as unknown) as HttpError).toHttpResponse()
+        );
       }
 
       if (isHttpResponse(response)) {
@@ -45,14 +49,14 @@ export const lambdaWrapper = ({
           );
         }
 
-        return response;
+        return callback(null, response);
       }
 
       if (config?.addTraceInfoToResponse) {
         response.debug = createTraceInfo(event, context).debug;
       }
 
-      return success({ body: response });
+      return callback(null, success({ body: response }));
     } catch (error) {
       console.log(error);
 
@@ -62,7 +66,7 @@ export const lambdaWrapper = ({
         addExtraInfoToError(event, context, newError);
       }
 
-      return newError;
+      return callback(null, newError);
     }
   };
 

@@ -9,20 +9,17 @@ import {
 } from '../src/';
 import { getMockEvent, getMockContext } from './testResources';
 import { HttpError } from '../src/httpResponse';
-// @ts-ignore
-import lambdaLocal = require('lambda-local');
+const LambdaTester = require('lambda-tester');
 
-describe.skip('lambdaWrapper, handler only', () => {
+describe('lambdaWrapper, handler only', () => {
   it('should return an json response when returning a plain object', async () => {
     const mockResponse = { message: true };
 
-    const handler: Middleware = () => mockResponse;
-
-    const wrapped = lambdaWrapper({
-      handler,
+    const testHandler = lambdaWrapper({
+      handler: () => mockResponse,
     });
 
-    const response = await wrapped(getMockEvent(), getMockContext(), () => {});
+    const response = await LambdaTester(testHandler).expectResult();
 
     expect(response).toEqual({
       body: JSON.stringify(mockResponse),
@@ -38,14 +35,11 @@ describe.skip('lambdaWrapper, handler only', () => {
   it('should return an json response when using success()', async () => {
     const mockResponse = { message: true };
 
-    const handler: Middleware = () =>
-      success({ statusCode: 203, body: mockResponse });
-
-    const wrapped = lambdaWrapper({
-      handler,
+    const testHandler = lambdaWrapper({
+      handler: () => success({ statusCode: 203, body: mockResponse }),
     });
 
-    const response = await wrapped(getMockEvent(), getMockContext(), () => {});
+    const response = await LambdaTester(testHandler).expectResult();
 
     expect(response).toEqual({
       body: JSON.stringify(mockResponse),
@@ -61,14 +55,11 @@ describe.skip('lambdaWrapper, handler only', () => {
   it('should return an json response when using httpResponse()', async () => {
     const mockResponse = { message: true };
 
-    const handler: Middleware = () =>
-      httpResponse({ statusCode: 201, body: mockResponse });
-
-    const wrapped = lambdaWrapper({
-      handler,
+    const testHandler = lambdaWrapper({
+      handler: () => httpResponse({ statusCode: 201, body: mockResponse }),
     });
 
-    const response = await wrapped(getMockEvent(), getMockContext(), () => {});
+    const response = await LambdaTester(testHandler).expectResult();
 
     expect(response).toEqual({
       body: JSON.stringify(mockResponse),
@@ -84,14 +75,11 @@ describe.skip('lambdaWrapper, handler only', () => {
   it('should return an json response when using httpResponse()', async () => {
     const mockResponse = { message: true };
 
-    const handler: Middleware = () =>
-      httpResponse({ statusCode: 201, body: mockResponse });
-
-    const wrapped = lambdaWrapper({
-      handler,
+    const testHandler = lambdaWrapper({
+      handler: () => httpResponse({ statusCode: 201, body: mockResponse }),
     });
 
-    const response = await wrapped(getMockEvent(), getMockContext(), () => {});
+    const response = await LambdaTester(testHandler).expectResult();
 
     expect(response).toEqual({
       body: JSON.stringify(mockResponse),
@@ -128,30 +116,6 @@ describe('lambdaWrapper - handler only', () => {
   });
 
   it('should return when return httpError', async () => {
-    const mockResponse = { message: true };
-
-    const handler: Middleware = () => {
-      return httpError({ statusCode: 402, body: mockResponse });
-    };
-
-    const wrapped = lambdaWrapper({
-      handler,
-    });
-
-    const response = await wrapped(getMockEvent(), getMockContext(), () => {});
-
-    expect(response).toEqual({
-      body: JSON.stringify(mockResponse),
-      headers: {
-        'Access-Control-Allow-Credentials': true,
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      },
-      statusCode: 402,
-    });
-  });
-
-  it.only('should return when return httpError', async () => {
     const mockResponse = { message: true };
 
     const handler: Middleware = () => {
