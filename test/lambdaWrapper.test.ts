@@ -8,7 +8,6 @@ import {
   httpError,
 } from '../src/';
 import { getMockEvent, getMockContext } from './testResources';
-import { HttpError } from '../src/httpResponse';
 const LambdaTester = require('lambda-tester');
 
 describe('lambdaWrapper, handler only', () => {
@@ -97,19 +96,13 @@ describe('lambdaWrapper - handler only', () => {
   it('should return when throwing httpError', async () => {
     const mockResponse = { message: true };
 
-    const handler: Middleware = () => {
-      throw httpError({ statusCode: 402, body: mockResponse });
-    };
-
-    const wrapped = lambdaWrapper({
-      handler,
+    const testHandler = lambdaWrapper({
+      handler: () => {
+        throw httpError({ statusCode: 402, body: mockResponse });
+      },
     });
 
-    const response = ((await wrapped(
-      getMockEvent(),
-      getMockContext(),
-      () => {}
-    )) as unknown) as HttpError;
+    const response = await LambdaTester(testHandler).expectResult();
 
     expect(response).toBeInstanceOf(Error);
     expect(response.statusCode).toBe(402);
