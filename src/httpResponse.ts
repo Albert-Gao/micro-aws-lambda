@@ -59,6 +59,16 @@ export class HttpError extends Error implements APIGatewayProxyResult {
     });
     this.body = JSON.stringify(newBody);
   }
+
+  toHttpResponse() {
+    return buildResponseObject({
+      statusCode: this.statusCode,
+      body: JSON.parse(this.body),
+      headers: this.headers,
+      multiValueHeaders: this.multiValueHeaders,
+      isBase64Encoded: this.isBase64Encoded,
+    });
+  }
 }
 
 export const httpError = ({
@@ -68,33 +78,59 @@ export const httpError = ({
 }: Partial<HttpResponseParams>) =>
   new HttpError({ statusCode, body, headers: getMergedHeaders(headers) });
 
+const buildResponseObject = ({
+  statusCode = 200,
+  body,
+  headers,
+  multiValueHeaders,
+  isBase64Encoded,
+}: Partial<HttpResponseParams>): APIGatewayProxyResult => {
+  const result: APIGatewayProxyResult = {
+    statusCode,
+    body: JSON.stringify(body),
+    headers: getMergedHeaders(headers),
+  };
+
+  if (multiValueHeaders) {
+    result.multiValueHeaders = multiValueHeaders;
+  }
+
+  if (isBase64Encoded) {
+    result.isBase64Encoded = isBase64Encoded;
+  }
+
+  return result;
+};
+
 export const httpResponse = ({
   statusCode = 200,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: Partial<HttpResponseParams>): APIGatewayProxyResult => ({
-  statusCode,
-  body: JSON.stringify(body),
-  headers: getMergedHeaders(headers),
-  multiValueHeaders,
-  isBase64Encoded,
-});
+}: Partial<HttpResponseParams>): APIGatewayProxyResult =>
+  buildResponseObject({
+    statusCode,
+    body,
+    headers,
+    multiValueHeaders,
+    isBase64Encoded,
+  });
 
 export const success = ({
-  statusCode = 400,
+  statusCode = 200,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: Partial<HttpResponseParams>): APIGatewayProxyResult => ({
-  statusCode,
-  headers: getMergedHeaders(headers),
-  body: JSON.stringify(body),
-  multiValueHeaders,
-  isBase64Encoded,
-});
+}: Partial<HttpResponseParams>): APIGatewayProxyResult =>
+  buildResponseObject({
+    statusCode,
+    headers: getMergedHeaders(headers),
+    body,
+    multiValueHeaders,
+    isBase64Encoded,
+  });
 
 export const badRequest = ({
   statusCode = 400,

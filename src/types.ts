@@ -4,11 +4,12 @@ import {
   Handler,
   APIGatewayProxyResult,
 } from 'aws-lambda';
+import { HttpError } from './httpResponse';
 
 type ExitFuncReturnValue = PlainObject | null;
 
 export interface PlainObject {
-  [key: string]: string | number | PlainObject;
+  [key: string]: string | number | PlainObject | boolean;
 }
 
 interface ExitFunc {
@@ -29,13 +30,15 @@ export type Middleware = ({
   passDownObj,
 }: MiddlewareParams) =>
   | PlainObject
-  | Promise<PlainObject>
-  | ExitFuncReturnValue;
+  | APIGatewayProxyResult
+  | Promise<PlainObject | APIGatewayProxyResult>
+  | ExitFuncReturnValue
+  | HttpError;
 
 export interface LambdaWrapperParams {
   handler: Middleware;
-  beforeHooks: Middleware[];
-  afterHooks: Middleware[];
+  beforeHooks?: Middleware[];
+  afterHooks?: Middleware[];
   config?: {
     addTraceInfoToResponse?: boolean;
     logRequestInfo?: boolean;

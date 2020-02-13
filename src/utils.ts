@@ -3,13 +3,19 @@ import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import { types } from 'util';
 import { HttpError } from 'httpResponse';
 
-export const funcQueueExecutor = async (
-  event: APIGatewayProxyEvent,
-  context: Context,
-  beforeHooks: Middleware[],
-  handler: Middleware,
-  afterHooks: Middleware[]
-) => {
+export const funcQueueExecutor = async ({
+  event,
+  context,
+  handler,
+  beforeHooks = [],
+  afterHooks = [],
+}: {
+  event: APIGatewayProxyEvent;
+  context: Context;
+  handler: Middleware;
+  beforeHooks?: Middleware[];
+  afterHooks?: Middleware[];
+}) => {
   let returnValue: PlainObject = {};
 
   const allFuncs = [...beforeHooks, handler, ...afterHooks];

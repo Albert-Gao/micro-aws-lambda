@@ -6,7 +6,7 @@ import {
   logRequestInfo,
 } from './utils';
 import { LambdaWrapperParams, LambdaHandler } from 'types';
-import { success, isHttpResponse } from './httpResponse';
+import { success, isHttpResponse, HttpError } from './httpResponse';
 
 export const lambdaWrapper = ({
   handler,
@@ -20,13 +20,21 @@ export const lambdaWrapper = ({
     }
 
     try {
-      const response = await funcQueueExecutor(
+      const response = await funcQueueExecutor({
         event,
         context,
         beforeHooks,
         handler,
-        afterHooks
-      );
+        afterHooks,
+      });
+
+      if (
+        response instanceof Error &&
+        typeof ((response as unknown) as HttpError).toHttpResponse ===
+          'function'
+      ) {
+        return ((response as unknown) as HttpError).toHttpResponse();
+      }
 
       if (isHttpResponse(response)) {
         if (config?.addTraceInfoToResponse) {

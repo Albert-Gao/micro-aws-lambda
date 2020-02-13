@@ -6,3 +6,4 @@ export {
   badRequest,
   internalError,
 } from './httpResponse';
+export { Middleware } from './types';
