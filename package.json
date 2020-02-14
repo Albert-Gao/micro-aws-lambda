@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Albert-Gao/micro-lambda"
+    "url": "git+https://github.com/Albert-Gao/micro-aws-lambda"
   },
   "peerDependencies": {},
   "husky": {

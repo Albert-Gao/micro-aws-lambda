@@ -108,7 +108,7 @@ describe('lambdaWrapper - handler only', () => {
     expect(response.statusCode).toBe(402);
   });
 
-  it('should return when return httpError', async () => {
+  it.skip('should return when return httpError', async () => {
     const mockResponse = { message: true };
 
     const handler: Middleware = () => {
