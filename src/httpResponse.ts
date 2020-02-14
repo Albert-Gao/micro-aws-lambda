@@ -14,8 +14,8 @@ const commonHeaders = {
 const getMergedHeaders = (headers?: APIGatewayProxyResult['headers']) =>
   headers
     ? {
-        ...headers,
         ...commonHeaders,
+        ...headers,
       }
     : commonHeaders;
 
@@ -68,8 +68,16 @@ export const httpError = ({
   statusCode = 400,
   body,
   headers,
+  multiValueHeaders,
+  isBase64Encoded,
 }: Partial<HttpResponseParams>) =>
-  new HttpError({ statusCode, body, headers: getMergedHeaders(headers) });
+  new HttpError({
+    statusCode,
+    body,
+    headers: getMergedHeaders(headers),
+    multiValueHeaders,
+    isBase64Encoded,
+  });
 
 export function buildResponseObject<T extends true | false>({
   statusCode = 200,
