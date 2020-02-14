@@ -5,35 +5,38 @@ import {
   APIGatewayProxyResult,
 } from 'aws-lambda';
 import { HttpError } from './httpResponse';
-
-type ExitFuncReturnValue = PlainObject | null;
+import { createTraceInfo } from './utils';
 
 export interface PlainObject {
   [key: string]: string | number | PlainObject | boolean;
 }
 
-interface ExitFunc {
-  (value: PlainObject | null): ExitFuncReturnValue;
+export interface HttpResponse extends Omit<APIGatewayProxyResult, 'body'> {
+  body: PlainObject & {
+    debug?: ReturnType<typeof createTraceInfo>;
+  };
 }
 
 interface MiddlewareParams {
   event: APIGatewayProxyEvent;
   context: Context;
-  exit: ExitFunc;
-  passDownObj: object;
+  passDownObj: PlainObject;
 }
 
 export type Middleware = ({
   event,
   context,
-  exit,
   passDownObj,
 }: MiddlewareParams) =>
+  | string
+  | number
+  | boolean
   | PlainObject
   | APIGatewayProxyResult
   | Promise<PlainObject | APIGatewayProxyResult>
-  | ExitFuncReturnValue
-  | HttpError;
+  | HttpError
+  | HttpResponse
+  | void;
 
 export interface LambdaWrapperParams {
   handler: Middleware;

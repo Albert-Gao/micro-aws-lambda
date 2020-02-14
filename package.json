@@ -1,5 +1,8 @@
 {
-  "version": "0.7.0",
+  "name": "micro-aws-lambda",
+  "author": "Albert Gao",
+  "module": "dist/micro-aws-lambda.esm.js",
+  "version": "1.0.0",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -11,7 +14,7 @@
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "prepare": "tsdx build",
+    "prepare": "tsdx test && tsdx build",
     "np:publish": "np --no-publish && npm publish"
   },
   "repository": {
@@ -30,9 +33,6 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "micro-lambda",
-  "author": "Albert Gao",
-  "module": "dist/easy-lambda.esm.js",
   "devDependencies": {
     "@types/jest": "^25.1.2",
     "husky": "^4.2.1",

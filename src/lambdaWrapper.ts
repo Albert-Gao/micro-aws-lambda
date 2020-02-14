@@ -1,12 +1,39 @@
 import {
   funcQueueExecutor,
-  addExtraInfoToError,
-  createTraceInfo,
-  addTraceInfoToJsonString,
   logRequestInfo,
+  addTraceInfoToResponseBody,
 } from './utils';
-import { LambdaWrapperParams, LambdaHandler } from 'types';
-import { success, isHttpResponse, HttpError } from './httpResponse';
+import {
+  LambdaWrapperParams,
+  LambdaHandler,
+  PlainObject,
+  HttpResponse,
+} from 'types';
+import {
+  isHttpResponse,
+  isHttpError,
+  HttpError,
+  buildResponseObject,
+  internalError,
+} from './httpResponse';
+
+const transformResponseToHttpResponse = (
+  response: HttpError | PlainObject | HttpResponse
+): HttpResponse => {
+  let result = response;
+
+  if (isHttpError(response)) {
+    result = response.toHttpResponse();
+  } else if (!isHttpResponse(response)) {
+    result = buildResponseObject({
+      statusCode: 200,
+      body: response,
+      shouldStringifyBody: false,
+    });
+  }
+
+  return result as HttpResponse;
+};
 
 export const lambdaWrapper = ({
   handler,
@@ -16,57 +43,45 @@ export const lambdaWrapper = ({
 }: LambdaWrapperParams) => {
   // @ts-ignore
   const wrapperHandler: LambdaHandler = async (event, context, callback) => {
-    if (config?.logRequestInfo) {
-      logRequestInfo(event, context);
-    }
+    let response: HttpError | PlainObject | HttpResponse = internalError({
+      body: {
+        error: 'Response not set',
+      },
+    });
 
     try {
-      const response = await funcQueueExecutor({
+      response = await funcQueueExecutor({
         event,
         context,
         beforeHooks,
         handler,
         afterHooks,
       });
+    } catch (error) {
+      console.log(error);
+      response = error;
+    } finally {
+      response = transformResponseToHttpResponse(response);
 
-      if (
-        response instanceof Error &&
-        typeof ((response as unknown) as HttpError).toHttpResponse ===
-          'function'
-      ) {
-        return callback(
-          null,
-          ((response as unknown) as HttpError).toHttpResponse()
+      if (config?.logRequestInfo) {
+        logRequestInfo(event, context);
+      }
+
+      if (config?.addTraceInfoToResponse) {
+        response.body = addTraceInfoToResponseBody(
+          response.body,
+          event,
+          context
         );
       }
 
-      if (isHttpResponse(response)) {
-        if (config?.addTraceInfoToResponse) {
-          response.body = addTraceInfoToJsonString(
-            response.body,
-            event,
-            context
-          );
-        }
-
-        return callback(null, response);
-      }
-
-      if (config?.addTraceInfoToResponse) {
-        response.debug = createTraceInfo(event, context).debug;
-      }
-
-      return callback(null, success({ body: response }));
-    } catch (error) {
-      console.log(error);
-
-      let newError = error;
-
-      if (config?.addTraceInfoToResponse) {
-        addExtraInfoToError(event, context, newError);
-      }
-
-      return callback(null, newError);
+      callback(
+        null,
+        buildResponseObject({
+          ...response,
+          shouldStringifyBody: true,
+        })
+      );
     }
   };
 

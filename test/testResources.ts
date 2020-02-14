@@ -104,7 +104,9 @@ const opts = {
   timeout: 3,
 };
 
-export const getMockContext = (): Context => {
+export const getMockContext = (
+  params: { hasFuncs?: boolean } = { hasFuncs: false }
+): Context => {
   let end: number;
 
   const fail = (err: any) => {
@@ -123,15 +125,7 @@ export const getMockContext = (): Context => {
     Promise.resolve(result);
   };
 
-  return {
-    callbackWaitsForEmptyEventLoop: true,
-    functionName: opts.functionName,
-    functionVersion: opts.functionVersion,
-    invokedFunctionArn: `arn:aws:lambda:${opts.region}:${opts.account}:function:${opts.functionName}:${opts.functionVersion}`,
-    memoryLimitInMB: opts.memoryLimitInMB,
-    awsRequestId: '111-222-333',
-    logGroupName: `/aws/lambda/${opts.functionName}`,
-    logStreamName: `fake-log-stream-name`,
+  const contextFuncs = {
     getRemainingTimeInMillis: () => {
       const start = Date.now();
       const endTime = end || Date.now();
@@ -141,7 +135,7 @@ export const getMockContext = (): Context => {
     },
     succeed,
     fail,
-    done: (err, result) => {
+    done: (err: any, result: any) => {
       if (err) {
         fail(err);
         return;
@@ -149,5 +143,19 @@ export const getMockContext = (): Context => {
 
       succeed(result);
     },
+  };
+
+  return {
+    // @ts-ignore
+    invokeid: '0d152165-8e14-4fcf-a6d9-1c768ebd4179',
+    callbackWaitsForEmptyEventLoop: true,
+    functionName: opts.functionName,
+    functionVersion: opts.functionVersion,
+    invokedFunctionArn: `arn:aws:lambda:${opts.region}:${opts.account}:function:${opts.functionName}:${opts.functionVersion}`,
+    memoryLimitInMB: opts.memoryLimitInMB,
+    awsRequestId: '111-222-333',
+    logGroupName: `/aws/lambda/${opts.functionName}`,
+    logStreamName: `fake-log-stream-name`,
+    ...(params.hasFuncs ? contextFuncs : {}),
   };
 };

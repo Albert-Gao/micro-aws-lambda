@@ -1,6 +1,7 @@
 export { lambdaWrapper } from './lambdaWrapper';
 export {
   httpError,
+  HttpError,
   httpResponse,
   success,
   badRequest,

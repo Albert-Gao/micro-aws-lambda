@@ -1,12 +1,12 @@
 module.exports = {
   transform: {
-    '.(ts|tsx)':
+    '.ts':
       '/Users/AlbertGao/codes/teamingCloud/micro-lambda/node_modules/ts-jest/dist/index.js',
   },
   transformIgnorePatterns: ['[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$'],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  collectCoverageFrom: ['src/**/*.{ts,tsx}'],
-  testMatch: ['<rootDir>/**/*.(spec|test).{ts,tsx}'],
+  moduleFileExtensions: ['ts', 'js', 'json', 'node'],
+  collectCoverageFrom: ['src/**/*.ts'],
+  testMatch: ['<rootDir>/**/*.(spec|test).ts'],
   testURL: 'http://localhost',
   rootDir: '/Users/AlbertGao/codes/teamingCloud/micro-lambda',
   watchPlugins: [
