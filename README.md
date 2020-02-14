@@ -21,10 +21,14 @@
 
 ## Usage
 
+### Install
+
+`npm install micro-aws-lambda`
+
 ### Quick start
 
 ```typescript
-import { Middleware, lambdaWrapper } from 'micro-lambda';
+import { Middleware, lambdaWrapper } from 'micro-aws-lambda';
 
 const lambda: Middleware = ({event, context, passDownObj}) => {}
 
@@ -64,7 +68,7 @@ type Middleware = ({
 Writing an API which will return a JSON and logging things like `APIGatewayID` and `CloudWatchID`, blahblah
 
 ```typescript
-import { lambdaWrapper, Middleware } from 'micro-lambda';
+import { lambdaWrapper, Middleware } from 'micro-aws-lambda';
 
 const lambda: Middleware = ({ event, context, passDownObj }) => {
   return {
@@ -86,7 +90,7 @@ What about I want to validate this request before executing my lambda? Easy, you
 In the following case, if the request name is 'albert', only `validateRequest` will be called.
 
 ```typescript
-import { badRequest } from 'micro-lambda';
+import { badRequest } from 'micro-aws-lambda';
 
 const validateRequest: Middleware = ({ event }) => {
   if (event.request.name === 'albert') {
@@ -109,7 +113,7 @@ You can add `afterHooks` as well for changing response.
 The following handler will only return { message: 'bad user, bye bye' }
 
 ```typescript
-import { badRequest } from 'micro-lambda';
+import { badRequest } from 'micro-aws-lambda';
 
 const validateResponse: Middleware = ({ passDownObj }) => {
   if (passDownObj.name === 'albert') {
