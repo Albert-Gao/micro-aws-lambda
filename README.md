@@ -21,11 +21,11 @@
 
 ## Usage
 
-### Install
+### 1. Install
 
 `npm install micro-aws-lambda`
 
-### Quick start
+### 2. Quick start
 
 ```typescript
 import { Middleware, lambdaWrapper } from 'micro-aws-lambda';
@@ -63,7 +63,7 @@ type Middleware = ({
   | void;
 ```
 
-### Simple handler
+### 3. Simple handler
 
 Writing an API which will return a JSON and logging things like `APIGatewayID` and `CloudWatchID`, blahblah
 
@@ -83,7 +83,7 @@ const handler = lambdaWrapper({
 // call the API, you will get json response: {message: ""it works"}
 ```
 
-### Before hooks
+### 4. Before hooks
 
 What about I want to validate this request before executing my lambda? Easy, you just add a hook.
 
@@ -107,7 +107,7 @@ const handler = lambdaWrapper({
 });
 ```
 
-### After hooks
+### 5. After hooks
 
 You can add `afterHooks` as well for changing response.
 The following handler will only return { message: 'bad user, bye bye' }
@@ -133,27 +133,79 @@ const handler = lambdaWrapper({
 });
 ```
 
-### Config
+### 6. Response
 
-#### addTraceInfoToResponse
+There are 2 types for response, `httpError()` for `throw`, and `httpResponse()` for `return`, each one of them has some shortcuts to use.
+
+```typescript
+import { httpError, httpResponse } from 'micro-aws-lambda';
+
+// It gives you an instance of HttpError, which extends from Error
+const error = httpError({
+  // default status code is 400 if not set
+  statusCode: 401,
+  body: {
+    message: 'test',
+  },
+  headers: {
+    'x-http-header': 'fake-header',
+  },
+});
+
+// It gives you a plain JS object.
+const response = httpResponse({
+  // default status code is 200 if not set
+  statusCode: 200,
+  body: {
+    message: 'test',
+  },
+  headers: {
+    'x-http-header': 'fake-header',
+  },
+});
+```
+
+The commons headers are:
+
+- 'Access-Control-Allow-Origin': '\*',
+- 'Access-Control-Allow-Credentials': true,
+- 'Content-Type': 'application/json',
+
+Supports `multiValueHeaders` and `isBase64Encoded` in case you need them.
+
+#### 6.1. Shortcuts
+
+Compare to the above methods, the only difference is the shortcuts just sets the status code, you can still modify them if you want.
+
+- `httpError`:
+  - `badRequest()`: 400
+  - `internalRequest()`: 500
+- `httpResponse`:
+  - `success()`: 200
+
+### 7. Config
+
+#### 7.1 addTraceInfoToResponse
 
 It will add debug info into the response object
 
 ```javascript
 {
-  endpoint: "",
-  requestBody: "",
-  requestMethod: "",
+  debug: {
+    endpoint: "",
+    requestBody: "",
+    requestMethod: "",
 
-  country: "",
-  lambdaRequestId: "",
-  logStreamName: "",
-  logGroupName: "",
-  apiGatewayId: "",
+    country: "",
+    lambdaRequestId: "",
+    logStreamName: "",
+    logGroupName: "",
+    apiGatewayId: ""
+  }
 }
 ```
 
-#### logRequestInfo
+#### 7.2 logRequestInfo
 
 It will `console.log`:
 
@@ -162,6 +214,6 @@ It will `console.log`:
 - `Aws-Api-Gateway-Request-Id`
 - `Identity-Source-Ip`
 
-## Credits
+## 8. Credits
 
 This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
