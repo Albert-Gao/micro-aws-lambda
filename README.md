@@ -15,9 +15,9 @@
   - pass values among middlewares
 - Return response
   - an object, it will be converted to a Lambda compatible response
-  - an built-in `httpResponse()` / `success()` / `badRequest()` / `internalError()`
+  - a built-in `httpResponse()` / `success()` / `badRequest()` / `internalError()`
   - or string, number, boolean
-- Easier debug:
+- Easy debug:
   - Adding debug info to response object
   - console.log event / context
 
@@ -69,7 +69,7 @@ type Middleware = ({
 
 ### 3. Simple handler
 
-Writing an API which will return a JSON and logging things like `APIGatewayID` and `CloudWatchID`, blahblah
+Writing an API which will return a JSON and logging things like `APIGatewayID` and `CloudWatchID`, blah blah
 
 ```typescript
 import { lambdaWrapper, Middleware } from 'micro-aws-lambda';
