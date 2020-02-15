@@ -1,6 +1,6 @@
 # Micro AWS Lambda
 
-<img src='https://github.com/Albert-Gao/micro-aws-lambda/blob/master/logo.png?raw=true' height='300px'/>
+<img src='https://github.com/Albert-Gao/micro-aws-lambda/blob/master/logo.png?raw=true' maxWidth="100%" height='auto' />
 
 ## Intro
 
