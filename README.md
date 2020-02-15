@@ -63,6 +63,8 @@ type Middleware = ({
   | void;
 ```
 
+`event` and `context` is immutable, if you want to pass any info down, attach it to the `passDownObj` as a property, like `passDownObj.value = { message: 'checked' }`, the `passDownObj` object is mutable.
+
 ### 3. Simple handler
 
 Writing an API which will return a JSON and logging things like `APIGatewayID` and `CloudWatchID`, blahblah
@@ -110,25 +112,24 @@ const handler = lambdaWrapper({
 ### 5. After hooks
 
 You can add `afterHooks` as well for changing response.
-The following handler will only return { message: 'bad user, bye bye' }
+The following handler will only return `{ message: 'bad user, bye bye' }`
+Every middleware in the `afterHooks` array will receive an additional `response` as the response.
 
 ```typescript
 import { badRequest } from 'micro-aws-lambda';
 
-const validateResponse: Middleware = ({ passDownObj }) => {
-  if (passDownObj.name === 'albert') {
+const validateResponse: Middleware = ({ response }) => {
+  if (response?.name === 'albert') {
     throw badRequest({
       message: 'bad user, bye bye',
-    });
-  }
+    };
+  })
 };
 
-const handler = lambdaWrapper({
-  handler: ({ passDownObj }) => {
-    const res = { name: 'albert' };
-    passDownObj.name = res.name;
-    return res;
-  },
+const testHandler = lambdaWrapper({
+  handler: () => ({
+    name: 'albert',
+  }),
   afterHooks: [validateResponse],
 });
 ```

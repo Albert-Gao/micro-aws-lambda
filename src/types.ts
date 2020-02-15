@@ -21,6 +21,7 @@ interface MiddlewareParams {
   event: APIGatewayProxyEvent;
   context: Context;
   passDownObj: PlainObject;
+  response?: any;
 }
 
 export type Middleware = ({

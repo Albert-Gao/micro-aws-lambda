@@ -121,6 +121,14 @@ it('should call functions one by one', async () => {
   await LambdaTester(testHandler).expectResult();
 
   expect(orders).toEqual([1, 2, 3, 4, 5, 6, 7]);
+
+  expect(beforeMock1).toBeCalledTimes(1);
+  expect(beforeMock2).toBeCalledTimes(1);
+  expect(beforeMock3).toBeCalledTimes(1);
+  expect(handlerMock).toBeCalledTimes(1);
+  expect(afterMock1).toBeCalledTimes(1);
+  expect(afterMock2).toBeCalledTimes(1);
+  expect(afterMock3).toBeCalledTimes(1);
 });
 
 it('should call async function without problems', async () => {
@@ -181,4 +189,72 @@ test('passDownObj should work', async () => {
     },
     statusCode: 200,
   });
+});
+
+test('111 should work', async () => {
+  const validateResponse: Middleware = ({ response }) => {
+    if (response?.name === 'albert') {
+      // eslint-disable-next-line no-throw-literal
+      throw {
+        message: 'bad user, bye bye',
+      };
+    }
+  };
+
+  const testHandler = lambdaWrapper({
+    handler: () => ({
+      name: 'albert',
+    }),
+    afterHooks: [validateResponse],
+  });
+
+  const result = await LambdaTester(testHandler).expectResult();
+
+  expect(result).toEqual({
+    body: JSON.stringify({
+      message: 'bad user, bye bye',
+    }),
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 200,
+  });
+});
+
+test('afterHook should receive one additional response in the parameter', async () => {
+  const mockResponse = { message: 'awesome' };
+
+  const beforeMock1 = jest.fn();
+  const beforeMock2 = jest.fn();
+
+  const handlerMock = jest.fn().mockImplementation(() => mockResponse);
+
+  const afterMock1 = jest.fn();
+  const afterMock2 = jest.fn();
+
+  const testHandler = lambdaWrapper({
+    handler: handlerMock,
+    beforeHooks: [beforeMock1, beforeMock2],
+    afterHooks: [afterMock1, afterMock2],
+  });
+
+  await LambdaTester(testHandler).expectResult();
+
+  expect(beforeMock1).toBeCalledWith(
+    expect.not.objectContaining({ response: expect.anything() })
+  );
+  expect(beforeMock2).toBeCalledWith(
+    expect.not.objectContaining({ response: expect.anything() })
+  );
+  expect(handlerMock).toBeCalledWith(
+    expect.not.objectContaining({ response: expect.anything() })
+  );
+  expect(afterMock1).toBeCalledWith(
+    expect.objectContaining({ response: mockResponse })
+  );
+  expect(afterMock2).toBeCalledWith(
+    expect.objectContaining({ response: mockResponse })
+  );
 });
