@@ -15,7 +15,7 @@
     "test": "tsdx test",
     "lint": "tsdx lint",
     "prepare": "tsdx test && tsdx build",
-    "np:publish": "np --no-publish && npm publish"
+    "prepublish": "np --no-publish"
   },
   "repository": {
     "type": "git",
