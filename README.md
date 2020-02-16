@@ -15,7 +15,8 @@
   - pass values among middlewares
 - Return response
   - an object, it will be converted to a Lambda compatible response
-  - a built-in `httpResponse()` / `success()` / `badRequest()` / `internalError()`
+  - a customizable `httpResponse()` / `success()`
+  - a customizable `httpError()` / `badRequest()` / `internalError()`
   - or string, number, boolean
 - Easy debug:
   - Adding debug info to response object
@@ -82,6 +83,9 @@ const lambda: Middleware = ({ event, context, passDownObj }) => {
 
 const handler = lambdaWrapper({
   handler: lambda,
+  config: {
+    addTraceInfoToResponse: true,
+  },
 });
 
 // call the API, you will get json response: {message: ""it works"}
@@ -97,7 +101,7 @@ In the following case, if the request name is 'albert', only `validateRequest` w
 import { badRequest } from 'micro-aws-lambda';
 
 const validateRequest: Middleware = ({ event }) => {
-  if (event.request.name === 'albert') {
+  if (event.request.body.name === 'albert') {
     throw badRequest({
       message: 'bad user, bye bye',
     });
@@ -111,11 +115,14 @@ const handler = lambdaWrapper({
 });
 ```
 
+Later on, you can reuse it in other lambdas.
+
 ### 5. After hooks
 
 You can add `afterHooks` as well for changing response.
+The middleware in `afterHooks` will receive an additional `response` as the response.
+
 The following handler will only return `{ message: 'bad user, bye bye' }`
-Every middleware in the `afterHooks` array will receive an additional `response` as the response.
 
 ```typescript
 import { badRequest } from 'micro-aws-lambda';
@@ -138,7 +145,14 @@ const testHandler = lambdaWrapper({
 
 ### 6. Response
 
-There are 2 types for response, `httpError()` for `throw`, and `httpResponse()` for `return`, each one of them has some shortcuts to use.
+There are 2 types for response:
+
+- `httpError()` for `throw`
+- `httpResponse()` for `return`
+
+Each one of them has some shortcuts to use.
+
+All parameters are customizable.
 
 ```typescript
 import { httpError, httpResponse } from 'micro-aws-lambda';
@@ -219,4 +233,5 @@ It will `console.log`:
 
 ## 8. Credits
 
-This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
+- The `beforeHooks` and `afterHooks` mechanism heavily inspired from my favourite REST framework: [Feathers.JS](https://feathersjs.com/)
+- This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
