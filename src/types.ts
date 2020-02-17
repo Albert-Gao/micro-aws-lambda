@@ -39,16 +39,6 @@ export type Middleware = ({
   | HttpResponse
   | void;
 
-export interface LambdaWrapperParams {
-  handler: Middleware;
-  beforeHooks?: Middleware[];
-  afterHooks?: Middleware[];
-  config?: {
-    addTraceInfoToResponse?: boolean;
-    logRequestInfo?: boolean;
-  };
-}
-
 export type LambdaHandler = Handler<
   APIGatewayProxyEvent,
   APIGatewayProxyResult

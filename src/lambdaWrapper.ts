@@ -3,12 +3,7 @@ import {
   logRequestInfo,
   addTraceInfoToResponseBody,
 } from './utils';
-import {
-  LambdaWrapperParams,
-  LambdaHandler,
-  PlainObject,
-  HttpResponse,
-} from 'types';
+import { Middleware, LambdaHandler, PlainObject, HttpResponse } from 'types';
 import {
   isHttpResponse,
   isHttpError,
@@ -40,7 +35,15 @@ export const lambdaWrapper = ({
   beforeHooks,
   afterHooks,
   config,
-}: LambdaWrapperParams) => {
+}: {
+  handler: Middleware;
+  beforeHooks?: Middleware[];
+  afterHooks?: Middleware[];
+  config?: {
+    addTraceInfoToResponse?: boolean;
+    logRequestInfo?: boolean;
+  };
+}) => {
   // @ts-ignore
   const wrapperHandler: LambdaHandler = async (event, context, callback) => {
     let response: HttpError | PlainObject | HttpResponse = internalError({
