@@ -15,7 +15,7 @@
     "test": "tsdx test",
     "lint": "tsdx lint",
     "prepare": "tsdx test && tsdx build",
-    "release": "np --no-publish && npm publish"
+    "release": "np --no-publish"
   },
   "repository": {
     "type": "git",
@@ -42,6 +42,6 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "@types/aws-lambda": "^8.10.40"
+    "@types/aws-lambda": "^8.10.41"
   }
 }
