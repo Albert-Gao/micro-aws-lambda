@@ -17,18 +17,16 @@ export interface HttpResponse extends Omit<APIGatewayProxyResult, 'body'> {
   };
 }
 
-interface MiddlewareParams {
-  event: APIGatewayProxyEvent;
-  context: Context;
-  passDownObj: PlainObject;
-  response?: any;
-}
-
 export type Middleware = ({
   event,
   context,
   passDownObj,
-}: MiddlewareParams) =>
+}: {
+  event: APIGatewayProxyEvent;
+  context: Context;
+  passDownObj: PlainObject;
+  response?: any;
+}) =>
   | string
   | number
   | boolean

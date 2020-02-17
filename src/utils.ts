@@ -1,5 +1,11 @@
-import { Middleware, PlainObject } from 'types';
+import { HttpResponse, Middleware, PlainObject } from './types';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
+import {
+  HttpError,
+  isHttpError,
+  isHttpResponse,
+  buildResponseObject,
+} from './httpResponse';
 
 export const funcQueueExecutor = async ({
   event,
@@ -115,4 +121,22 @@ export const logRequestInfo = (
   );
   console.log('EVENT: ', event);
   console.log('CONTEXT: ', context);
+};
+
+export const transformResponseToHttpResponse = (
+  response: HttpError | PlainObject | HttpResponse
+): HttpResponse => {
+  let result = response;
+
+  if (isHttpError(response)) {
+    result = response.toHttpResponse();
+  } else if (!isHttpResponse(response)) {
+    result = buildResponseObject({
+      statusCode: 200,
+      body: response,
+      shouldStringifyBody: false,
+    });
+  }
+
+  return result as HttpResponse;
 };

@@ -2,33 +2,10 @@ import {
   funcQueueExecutor,
   logRequestInfo,
   addTraceInfoToResponseBody,
+  transformResponseToHttpResponse,
 } from './utils';
-import { Middleware, LambdaHandler, PlainObject, HttpResponse } from 'types';
-import {
-  isHttpResponse,
-  isHttpError,
-  HttpError,
-  buildResponseObject,
-  internalError,
-} from './httpResponse';
-
-const transformResponseToHttpResponse = (
-  response: HttpError | PlainObject | HttpResponse
-): HttpResponse => {
-  let result = response;
-
-  if (isHttpError(response)) {
-    result = response.toHttpResponse();
-  } else if (!isHttpResponse(response)) {
-    result = buildResponseObject({
-      statusCode: 200,
-      body: response,
-      shouldStringifyBody: false,
-    });
-  }
-
-  return result as HttpResponse;
-};
+import { Middleware, LambdaHandler, PlainObject, HttpResponse } from './types';
+import { HttpError, buildResponseObject, internalError } from './httpResponse';
 
 export const lambdaWrapper = ({
   handler,
