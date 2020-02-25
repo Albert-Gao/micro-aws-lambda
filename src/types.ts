@@ -1,7 +1,6 @@
 import {
   APIGatewayProxyEvent,
   Context,
-  Handler,
   APIGatewayProxyResult,
 } from 'aws-lambda';
 import { HttpError } from './httpResponse';
@@ -36,8 +35,3 @@ export type Middleware = ({
   | HttpError
   | HttpResponse
   | void;
-
-export type LambdaHandler = Handler<
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult
->;

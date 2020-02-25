@@ -4,16 +4,21 @@ import {
   addTraceInfoToResponseBody,
   transformResponseToHttpResponse,
 } from './utils';
-import { Middleware, LambdaHandler, PlainObject, HttpResponse } from './types';
+import { Middleware, PlainObject, HttpResponse } from './types';
 import { HttpError, buildResponseObject, internalError } from './httpResponse';
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult,
+  Handler,
+} from 'aws-lambda';
 
 export const lambdaWrapper = ({
-  handler,
+  lambda,
   beforeHooks,
   afterHooks,
   config,
 }: {
-  handler: Middleware;
+  lambda: Middleware;
   beforeHooks?: Middleware[];
   afterHooks?: Middleware[];
   config?: {
@@ -22,7 +27,10 @@ export const lambdaWrapper = ({
   };
 }) => {
   // @ts-ignore
-  const wrapperHandler: LambdaHandler = async (event, context, callback) => {
+  const wrapperHandler: Handler<
+    APIGatewayProxyEvent,
+    APIGatewayProxyResult
+  > = async (event, context, callback) => {
     let response: HttpError | PlainObject | HttpResponse = internalError({
       body: {
         error: 'Response not set',
@@ -34,7 +42,7 @@ export const lambdaWrapper = ({
         event,
         context,
         beforeHooks,
-        handler,
+        lambda,
         afterHooks,
       });
     } catch (error) {
