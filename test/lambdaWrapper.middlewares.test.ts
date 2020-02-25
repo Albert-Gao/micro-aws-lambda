@@ -5,7 +5,7 @@ it('should return an json response from handler', async () => {
   const mockResponse = { message: true };
 
   const testHandler = lambdaWrapper({
-    handler: () => mockResponse,
+    lambda: () => mockResponse,
     beforeHooks: [() => true],
   });
 
@@ -23,11 +23,11 @@ it('should return an json response from handler', async () => {
 });
 
 it('should return an  response from beforeHook', async () => {
-  const handlerMock = jest.fn();
+  const lambdaMock = jest.fn();
   const mockError = { name: 'test' };
 
   const testHandler = lambdaWrapper({
-    handler: handlerMock,
+    lambda: lambdaMock,
     beforeHooks: [
       () => {
         throw mockError;
@@ -37,7 +37,7 @@ it('should return an  response from beforeHook', async () => {
 
   const response = await LambdaTester(testHandler).expectResult();
 
-  expect(handlerMock).not.toBeCalled();
+  expect(lambdaMock).not.toBeCalled();
   expect(response).toEqual({
     body: JSON.stringify(mockError),
     headers: {
@@ -50,11 +50,11 @@ it('should return an  response from beforeHook', async () => {
 });
 
 it('should return an Error response from afterHooks', async () => {
-  const handlerMock = jest.fn();
+  const lambdaMock = jest.fn();
   const mockError = { name: 'test' };
 
   const testHandler = lambdaWrapper({
-    handler: handlerMock,
+    lambda: lambdaMock,
     afterHooks: [
       () => {
         throw mockError;
@@ -64,7 +64,7 @@ it('should return an Error response from afterHooks', async () => {
 
   const response = await LambdaTester(testHandler).expectResult();
 
-  expect(handlerMock).toBeCalledTimes(1);
+  expect(lambdaMock).toBeCalledTimes(1);
   expect(response).toEqual({
     body: JSON.stringify(mockError),
     headers: {
@@ -77,17 +77,17 @@ it('should return an Error response from afterHooks', async () => {
 });
 
 it('should return an normal response from afterHooks', async () => {
-  const handlerMock = jest.fn();
+  const lambdaMock = jest.fn();
   const mockResponse = { name: 'test' };
 
   const testHandler = lambdaWrapper({
-    handler: handlerMock,
+    lambda: lambdaMock,
     afterHooks: [() => mockResponse],
   });
 
   const response = await LambdaTester(testHandler).expectResult();
 
-  expect(handlerMock).toBeCalledTimes(1);
+  expect(lambdaMock).toBeCalledTimes(1);
   expect(response).toEqual({
     body: JSON.stringify(mockResponse),
     headers: {
@@ -106,14 +106,14 @@ it('should call functions one by one', async () => {
   const beforeMock2 = jest.fn().mockImplementation(() => orders.push(2));
   const beforeMock3 = jest.fn().mockImplementation(() => orders.push(3));
 
-  const handlerMock = jest.fn().mockImplementation(() => orders.push(4));
+  const lambdaMock = jest.fn().mockImplementation(() => orders.push(4));
 
   const afterMock1 = jest.fn().mockImplementation(() => orders.push(5));
   const afterMock2 = jest.fn().mockImplementation(() => orders.push(6));
   const afterMock3 = jest.fn().mockImplementation(() => orders.push(7));
 
   const testHandler = lambdaWrapper({
-    handler: handlerMock,
+    lambda: lambdaMock,
     beforeHooks: [beforeMock1, beforeMock2, beforeMock3],
     afterHooks: [afterMock1, afterMock2, afterMock3],
   });
@@ -125,7 +125,7 @@ it('should call functions one by one', async () => {
   expect(beforeMock1).toBeCalledTimes(1);
   expect(beforeMock2).toBeCalledTimes(1);
   expect(beforeMock3).toBeCalledTimes(1);
-  expect(handlerMock).toBeCalledTimes(1);
+  expect(lambdaMock).toBeCalledTimes(1);
   expect(afterMock1).toBeCalledTimes(1);
   expect(afterMock2).toBeCalledTimes(1);
   expect(afterMock3).toBeCalledTimes(1);
@@ -135,12 +135,12 @@ it('should call async function without problems', async () => {
   const mockResponse = { message: 'wow' };
 
   const beforeMock = jest.fn();
-  const handlerMock = async function() {
+  const lambdaMock = async function() {
     return Promise.resolve(mockResponse);
   };
 
   const testHandler = lambdaWrapper({
-    handler: handlerMock,
+    lambda: lambdaMock,
     beforeHooks: [beforeMock],
   });
 
@@ -168,7 +168,7 @@ test('passDownObj should work', async () => {
   };
 
   const testHandler = lambdaWrapper({
-    handler: ({ passDownObj }) => {
+    lambda: ({ passDownObj }) => {
       const res = { name: 'albert' };
       passDownObj.name = res.name;
       return res;
@@ -202,7 +202,7 @@ test('111 should work', async () => {
   };
 
   const testHandler = lambdaWrapper({
-    handler: () => ({
+    lambda: () => ({
       name: 'albert',
     }),
     afterHooks: [validateResponse],
@@ -229,13 +229,13 @@ test('afterHook should receive one additional response in the parameter', async 
   const beforeMock1 = jest.fn();
   const beforeMock2 = jest.fn();
 
-  const handlerMock = jest.fn().mockImplementation(() => mockResponse);
+  const lambdaMock = jest.fn().mockImplementation(() => mockResponse);
 
   const afterMock1 = jest.fn();
   const afterMock2 = jest.fn();
 
   const testHandler = lambdaWrapper({
-    handler: handlerMock,
+    lambda: lambdaMock,
     beforeHooks: [beforeMock1, beforeMock2],
     afterHooks: [afterMock1, afterMock2],
   });
@@ -248,7 +248,7 @@ test('afterHook should receive one additional response in the parameter', async 
   expect(beforeMock2).toBeCalledWith(
     expect.not.objectContaining({ response: expect.anything() })
   );
-  expect(handlerMock).toBeCalledWith(
+  expect(lambdaMock).toBeCalledWith(
     expect.not.objectContaining({ response: expect.anything() })
   );
   expect(afterMock1).toBeCalledWith(

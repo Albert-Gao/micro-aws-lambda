@@ -5,7 +5,7 @@ it('should return an json response when returning a plain object', async () => {
   const mockResponse = { message: true };
 
   const testHandler = lambdaWrapper({
-    handler: () => mockResponse,
+    lambda: () => mockResponse,
   });
 
   const response = await LambdaTester(testHandler).expectResult();
@@ -25,7 +25,7 @@ it('should return an json response when using success()', async () => {
   const mockResponse = { message: true };
 
   const testHandler = lambdaWrapper({
-    handler: () => success({ statusCode: 203, body: mockResponse }),
+    lambda: () => success({ statusCode: 203, body: mockResponse }),
   });
 
   const response = await LambdaTester(testHandler).expectResult();
@@ -45,7 +45,7 @@ it('should return an json response when using httpResponse()', async () => {
   const mockResponse = { message: true };
 
   const testHandler = lambdaWrapper({
-    handler: () => httpResponse({ statusCode: 201, body: mockResponse }),
+    lambda: () => httpResponse({ statusCode: 201, body: mockResponse }),
   });
 
   const response = await LambdaTester(testHandler).expectResult();
@@ -65,7 +65,7 @@ it('should return an json response when using httpResponse()', async () => {
   const mockResponse = { message: true };
 
   const testHandler = lambdaWrapper({
-    handler: () => httpResponse({ statusCode: 201, body: mockResponse }),
+    lambda: () => httpResponse({ statusCode: 201, body: mockResponse }),
   });
 
   const response = await LambdaTester(testHandler).expectResult();
@@ -85,7 +85,7 @@ it('should return a string when returning a string', async () => {
   const mockResponse = 'test-response';
 
   const testHandler = lambdaWrapper({
-    handler: () => mockResponse,
+    lambda: () => mockResponse,
   });
 
   const response = await LambdaTester(testHandler).expectResult();
@@ -105,7 +105,7 @@ it('should return a number when returning a number', async () => {
   const mockResponse = 8888;
 
   const testHandler = lambdaWrapper({
-    handler: () => mockResponse,
+    lambda: () => mockResponse,
   });
 
   const response = await LambdaTester(testHandler).expectResult();
@@ -125,7 +125,7 @@ it('should return a boolean when returning a boolean', async () => {
   const mockResponse = true;
 
   const testHandler = lambdaWrapper({
-    handler: () => mockResponse,
+    lambda: () => mockResponse,
   });
 
   const response = await LambdaTester(testHandler).expectResult();
