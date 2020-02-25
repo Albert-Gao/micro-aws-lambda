@@ -33,7 +33,7 @@ Lambda Proxy is making it a flash to creating an API endpoint. But that's just t
 
 Middleware is for decoupling logic. We all know it, but let me share you a simple story. Previously, I thought the `beforeHooks` is just a joke because what logic can you put there? Authentication mainly maybe? `afterHooks`?! Shouldn't you finish your logic in your controller already?
 
-I learned the value of `beforeHooks` and `afterHooks` after adopting [Feathers.JS](https://feathersjs.com/). Which has a beautiful concept of 3 layers for every endpoint, in `micro-aws-lambda`'s context, `beforeHooks` -> `handler` -> `afterHooks`.
+I learned the value of `beforeHooks` and `afterHooks` after adopting [Feathers.JS](https://feathersjs.com/). Which has a beautiful concept of 3 layers for every endpoint, in `micro-aws-lambda`'s context, `beforeHooks` -> `lambda` -> `afterHooks`.
 
 Let's say a simple return-a-user endpoint, what does it look like when you are using `micro-aws-lambda`
 
@@ -57,7 +57,7 @@ export lambdaWrapper({
 
 As you can see here, the `beforeHooks` and `afterHooks` can contain logic piece, and beyond this example, you can see the true value of it: Middlewares like `isStillEmployed` and `combineUserNames` should be potentially reuseable when composing the other endpoints. Ideally, you can just compose your future lambda without writing any code except for an integration test. Every middleware here can be fully tested and ready to use.
 
-This concept doesn't apply only to this library, but to any middleware based library or framework. In short, you always want to make your `handler` as deadly simple as possible, in this example, `justReturnUserObjectDirectlyFromDB`. So any logic for processing the entity can be added to `afterHooks`, which you can use to compose later. And via this way, maybe the `justReturnUserObjectDirectlyFromDB` can be changed to something like `justReturnObjectDirectlyFromDB('company')`, because it is so generic, you can apply to the other entities other than just `user` entity.
+This concept doesn't apply only to this library, but to any middleware based library or framework. In short, you always want to make your `lambda` as deadly simple as possible, in this example, `justReturnUserObjectDirectlyFromDB`. So any logic for processing the entity can be added to `afterHooks`, which you can use to compose later. And via this way, maybe the `justReturnUserObjectDirectlyFromDB` can be changed to something like `justReturnObjectDirectlyFromDB('company')`, because it is so generic, you can apply to the other entities other than just `user` entity.
 
 Another pain point is every time I want to trace the lambda logs in CloudWatch, a lot of information needed like the logId. I'd love to have a simple switch there so any time I want to trace the lambda, I should receive everything I need in the response, I can simply copy and paste in CloudWatch to get the information.
 
@@ -75,7 +75,7 @@ import { Middleware, lambdaWrapper } from 'micro-aws-lambda';
 const lambda: Middleware = ({event, context, passDownObj}) => {}
 
 const handler = lambdaWrapper({
-  handler: lambda,
+  lambda,
   beforeHooks: [],
   afterHooks: [],
   config: {
@@ -85,8 +85,8 @@ const handler = lambdaWrapper({
 });
 ```
 
-- The execution order is: `beforeHooks` -> `handler` -> `afterHooks`.
-- `beforeHooks`, `handler`, `afterHooks` all have the same signature:
+- The execution order is: `beforeHooks` -> `lambda` -> `afterHooks`.
+- `beforeHooks`, `lambda`, `afterHooks` all have the same signature:
 
 ```typescript
 type Middleware = ({
