@@ -127,7 +127,7 @@ const lambda: Middleware = ({ event, context, passDownObj }) => {
 };
 
 const handler = lambdaWrapper({
-  handler: lambda,
+  lambda,
   config: {
     addTraceInfoToResponse: true,
   },
@@ -181,7 +181,7 @@ const validateResponse: Middleware = ({ response }) => {
 };
 
 const testHandler = lambdaWrapper({
-  handler: () => ({
+  lambda: () => ({
     name: 'albert',
   }),
   afterHooks: [validateResponse],
