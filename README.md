@@ -26,14 +26,12 @@
 
 Lambda Proxy is making it a flash to creating an API endpoint. But that's just the infrastructure part. It doesn't mean your business logic can be simplified.
 
-- I feel like I need a middleware setup to decouple my business logic, so I can reuse them across my lambda. But I don't want to install a lib that has many dependencies which adds overhead to the simplicity nature of lambda which result in a bigger bundle size as well.
-- I want to deal with a simple interface, where `before` is `before` and `after` is `after`. I don't want to deal with a mental model where a middleware will be invoked twice for both stages, and I still have to figure out the difference between the `before` and `after` stage.
+- I need a middleware setup to decouple my business logic without installing a lib that has many dependencies and result in a bigger bundle size as well.
+- I want to deal with a simple interface, where `before` is `before` and `after` is `after`. I don't want to deal with a mental model where a middleware will be invoked twice for both stages, and handle both the `before` and `after` stage in one function.
 
 # What problems does it solve
 
-Middleware is for decoupling logic. We all know it, but let me share you a simple story. Previously, I thought the `beforeHooks` is just a joke because what logic can you put there? Authentication mainly maybe? `afterHooks`?! Shouldn't you finish your logic in your controller already?
-
-I learned the value of `beforeHooks` and `afterHooks` after adopting [Feathers.JS](https://feathersjs.com/). Which has a beautiful concept of 3 layers for every endpoint, in `micro-aws-lambda`'s context, `beforeHooks` -> `lambda` -> `afterHooks`.
+Middleware is for decoupling logic. I learned the value of `beforeHooks` and `afterHooks` after adopting [Feathers.JS](https://feathersjs.com/). Which has a beautiful concept of 3 layers for every endpoint, and I found myself rarely have any boilerplate code anymore. In `micro-aws-lambda`'s context, `beforeHooks` -> `lambda` -> `afterHooks`.
 
 Let's say a simple return-a-user endpoint, what does it look like when you are using `micro-aws-lambda`
 
@@ -97,8 +95,8 @@ type Middleware = ({
 }: {
   event: APIGatewayProxyEvent; // from @types/aws-lambda
   context: Context; // from @types/aws-lambda
-  passDownObj: PlainObject; // a plain JS object
-  response?: any; // only available for afterHooks which includes the response
+  passDownObj: PlainObject; // a plain JS object you can attach your property to pass value down
+  response?: any; // it is the response object from the previous middleware
 }) =>
   | string
   | number
@@ -111,7 +109,9 @@ type Middleware = ({
   | void;
 ```
 
-`event` and `context` is immutable, if you want to pass any info down, attach it to the `passDownObj` as a property, like `passDownObj.value = { message: 'checked' }`, the `passDownObj` object is mutable.
+- `event` and `context` is immutable.
+- if you want to pass any info down, attach it to the `passDownObj` as a property, like `passDownObj.value = { message: 'checked' }`, the `passDownObj` object is mutable.
+- `response` is the response object (from the previous middleware) that will be returned in the end, it's not for mutating, only for a reference
 
 ### 3. Simple handler
 
@@ -120,7 +120,7 @@ Writing an API which will return a JSON and logging things like `APIGatewayID` a
 ```typescript
 import { lambdaWrapper, Middleware } from 'micro-aws-lambda';
 
-const lambda: Middleware = ({ event, context, passDownObj }) => {
+const lambda: Middleware = () => {
   return {
     message: 'it works',
   };
@@ -136,7 +136,28 @@ const handler = lambdaWrapper({
 // call the API, you will get json response: {message: ""it works"}
 ```
 
-### 4. Before hooks
+### 4. Three minutes master
+
+- What will be returned?
+
+  - the `return` value from the last middleware will be taken as the response
+  - the error thrown by one of the middleware (all the rest middleware won't get executed)
+
+- You can `return` in any middleware **(which won't stop the chain)**:
+  - a `httpResponse()`
+  - or a `success()` (just a `httpResponse()` with status code set to 200, you can still change it)
+  - or an plain object / string / number which will be wrapped with `success()`
+  - it will be passed to the next middleware as the `response` parameter
+- You can `throw` **(which will stop the chain so any middlewares after it won't be executed)**:
+  - an `httpError()`
+  - an `badRequest()`
+  - an `internalError()`
+- Anytime you want to check what will be returned in the end, check the `response` from the parameter
+  - to change the `response`, you just `return` in your current middleware
+- Anytime you want to pass something down the chain, use `passDownObj` from the parameter
+  - just attach your value to it: `passDownObj.myValue = 123`, `myValue` could be any name
+
+### 5. Before hooks
 
 What about I want to validate this request before executing my lambda? Easy, you just add a hook.
 
@@ -162,7 +183,7 @@ const handler = lambdaWrapper({
 
 Later on, you can reuse it in other lambdas.
 
-### 5. After hooks
+### 6. After hooks
 
 You can add `afterHooks` as well for changing response.
 The middleware in `afterHooks` will receive an additional `response` as the response.
@@ -188,7 +209,7 @@ const testHandler = lambdaWrapper({
 });
 ```
 
-### 6. Response
+### 7. Response
 
 There are 2 types for response:
 
@@ -235,7 +256,7 @@ The commons headers are:
 
 Supports `multiValueHeaders` and `isBase64Encoded` in case you need them.
 
-#### 6.1. Shortcuts
+#### 7.1. Shortcuts
 
 Compare to the above methods, the only difference is the shortcuts just sets the status code, you can still modify them if you want.
 
@@ -245,9 +266,9 @@ Compare to the above methods, the only difference is the shortcuts just sets the
 - `httpResponse`:
   - `success()`: 200
 
-### 7. Config
+### 8. Config
 
-#### 7.1 addTraceInfoToResponse
+#### 8.1 addTraceInfoToResponse
 
 It will add debug info into the response object
 
@@ -267,7 +288,7 @@ It will add debug info into the response object
 }
 ```
 
-#### 7.2 logRequestInfo
+#### 8.2 logRequestInfo
 
 It will `console.log`:
 
@@ -276,7 +297,7 @@ It will `console.log`:
 - `Aws-Api-Gateway-Request-Id`
 - `Identity-Source-Ip`
 
-## 8. Credits
+## 9. Credits
 
 - The `beforeHooks` and `afterHooks` mechanism heavily inspired from my favourite REST framework: [Feathers.JS](https://feathersjs.com/)
 - This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
