@@ -35,7 +35,7 @@ Middleware is for decoupling logic. I learned the value of `beforeHooks` and `af
 Let's say a simple return-a-user endpoint, what does it look like when you are using `micro-aws-lambda`
 
 ```javascript
-const handler = lambdaWrapper({
+const handler = lambdas({
   middlewares: [
     validateRequestBody(GetUserSchema),
     isStillEmployed,
@@ -59,11 +59,9 @@ Ideally, you can just compose your future lambda without writing any code except
 ### 2. Quick start
 
 ```typescript
-import { lambdaWrapper } from 'micro-aws-lambda';
+import { lambdas } from 'micro-aws-lambda';
 
-const handler = lambdaWrapper({
-  middlewares: [() => ({ message: 'it works' })],
-});
+const handler = lambdas([() => ({ message: 'it works' })]);
 
 // call the API, you will get json response: { message: "it works" }
 ```
@@ -242,7 +240,7 @@ Or if you like me, you can write a simple validating middleware with the `yup` s
 
 ```typescript
 import { Schema } from 'yup';
-import { lambdaWrapper, Middleware, badRequest } from 'micro-aws-lambda';
+import { lambdas, Middleware, badRequest } from 'micro-aws-lambda';
 
 const validateBodyWithYupSchema = (schema: Schema): Middleware => async ({
   event,
@@ -252,9 +250,7 @@ const validateBodyWithYupSchema = (schema: Schema): Middleware => async ({
   }
 };
 
-const handler = lambdaWrapper({
-  middlewares: [validateBodyWithYupSchema(myYupSchema)],
-});
+const handler = lambdas([validateBodyWithYupSchema(myYupSchema)]);
 ```
 
 #### 7.2 processing Response
@@ -274,8 +270,8 @@ const removeFieldsFromResponse = (fieldsToRemove: string[]): Middleware = ({ res
     return newResponse;
 };
 
-const testHandler = lambdaWrapper({
-  middlewares: [
+const testHandler = lambdas(
+  [
     () => ({
       name: 'albert',
       password: '123qwe',
@@ -283,7 +279,7 @@ const testHandler = lambdaWrapper({
     }),
     removeFieldsFromResponse(['password', 'address'])
    ],
-});
+);
 
 // response will be  { name: 'albert' }
 ```

@@ -12,16 +12,13 @@ import {
   Handler,
 } from 'aws-lambda';
 
-export const lambdaWrapper = ({
-  middlewares = [],
-  config,
-}: {
-  middlewares: Middleware[];
+export const lambdas = (
+  middlewares: Middleware[],
   config?: {
     addTraceInfoToResponse?: boolean;
     logRequestInfo?: boolean;
-  };
-}) => {
+  }
+) => {
   // @ts-ignore
   const wrapperHandler: Handler<
     APIGatewayProxyEvent,

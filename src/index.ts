@@ -1,4 +1,4 @@
-export { lambdaWrapper } from './lambdaWrapper';
+export { lambdas } from './lambdas';
 export {
   httpError,
   HttpError,
