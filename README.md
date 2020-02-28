@@ -8,7 +8,7 @@
 - Written in Typescript
 - Zero runtime dependencies
 - Tiny: 7KB after minified
-- Extendable with middlewares
+- Rapid middlewares
   - simple reasoning, just running one by one
   - early exit for just `throw` `httpError()` or anything
   - pass values among middlewares
@@ -35,17 +35,15 @@ Middleware is for decoupling logic. I learned the value of `beforeHooks` and `af
 Let's say a simple return-a-user endpoint, what does it look like when you are using `micro-aws-lambda`
 
 ```javascript
-const handler = lambdas({
-  middlewares: [
-    validateRequestBody(GetUserSchema),
-    isStillEmployed,
-    verifyPaymentStatus,
-    justReturnUserObjectDirectlyFromDB,
-    removeFieldsFromResponse('password', 'address'),
-    combineUserNames,
-    transformResponseToClientSideStructure,
-  ],
-});
+const handler = lambdas([
+  validateRequestBody(GetUserSchema),
+  isStillEmployed,
+  verifyPaymentStatus,
+  justReturnUserObjectDirectlyFromDB,
+  removeFieldsFromResponse('password', 'address'),
+  combineUserNames,
+  transformResponseToClientSideStructure,
+]);
 ```
 
 Ideally, you can just compose your future lambda without writing any code except for an integration test. The logic will be declarative. Every middleware here can be fully tested and ready to reuse.
