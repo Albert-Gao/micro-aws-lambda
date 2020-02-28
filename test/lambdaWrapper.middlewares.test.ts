@@ -48,7 +48,7 @@ it('should return an response from beforeHook', async () => {
   });
 });
 
-it('should pass the response from beforeHook to afterHook', async () => {
+it('should pass the response among the middlewares', async () => {
   const mockResponse = { name: 'test' };
   const beforeHookMock: jest.Mock<Middleware> = jest.fn();
   const lambdaMock: jest.Mock<Middleware> = jest.fn();
@@ -111,7 +111,7 @@ it('should return an Error response from afterHooks', async () => {
   });
 });
 
-it('should return an normal response from afterHooks', async () => {
+it('should return a normal response from afterHooks', async () => {
   const lambdaMock = jest.fn();
   const mockResponse = { name: 'test' };
 
@@ -133,42 +133,48 @@ it('should return an normal response from afterHooks', async () => {
   });
 });
 
-it('should call functions one by one', async () => {
+it('should call middlewares one by one', async () => {
   const orders: number[] = [];
 
-  const beforeMock1 = jest.fn().mockImplementation(() => orders.push(1));
-  const beforeMock2 = jest.fn().mockImplementation(() => orders.push(2));
-  const beforeMock3 = jest.fn().mockImplementation(() => orders.push(3));
+  const middleware1 = jest.fn().mockImplementation(() => orders.push(1));
+  const middleware2 = jest.fn().mockImplementation(() => orders.push(2));
+  const middleware3 = jest.fn().mockImplementation(() => orders.push(3));
 
-  const lambdaMock = jest.fn().mockImplementation(() => orders.push(4));
+  const middleware4 = jest.fn().mockImplementation(() => {
+    orders.push(4);
+    return Promise.resolve(true);
+  });
 
-  const afterMock1 = jest.fn().mockImplementation(() => orders.push(5));
-  const afterMock2 = jest.fn().mockImplementation(() => orders.push(6));
-  const afterMock3 = jest.fn().mockImplementation(() => orders.push(7));
+  const middleware5 = jest.fn().mockImplementation(() => orders.push(5));
+  const middleware6 = jest.fn().mockImplementation(() => orders.push(6));
+  const middleware7 = jest.fn().mockImplementation(() => orders.push(7));
 
   const testHandler = lambdaWrapper({
     middlewares: [
-      beforeMock1,
-      beforeMock2,
-      beforeMock3,
-      lambdaMock,
-      afterMock1,
-      afterMock2,
-      afterMock3,
+      middleware1,
+      middleware2,
+      middleware3,
+      middleware4,
+      middleware5,
+      middleware6,
+      middleware7,
     ],
   });
 
-  await LambdaTester(testHandler).expectResult();
+  const result = await LambdaTester(testHandler).expectResult();
 
   expect(orders).toEqual([1, 2, 3, 4, 5, 6, 7]);
 
-  expect(beforeMock1).toBeCalledTimes(1);
-  expect(beforeMock2).toBeCalledTimes(1);
-  expect(beforeMock3).toBeCalledTimes(1);
-  expect(lambdaMock).toBeCalledTimes(1);
-  expect(afterMock1).toBeCalledTimes(1);
-  expect(afterMock2).toBeCalledTimes(1);
-  expect(afterMock3).toBeCalledTimes(1);
+  expect(middleware1).toBeCalledTimes(1);
+  expect(middleware2).toBeCalledTimes(1);
+  expect(middleware3).toBeCalledTimes(1);
+  expect(middleware4).toBeCalledTimes(1);
+  expect(middleware5).toBeCalledTimes(1);
+  expect(middleware6).toBeCalledTimes(1);
+  expect(middleware7).toBeCalledTimes(1);
+
+  // because orders.push(7) will return 7
+  expect(result.body).toEqual(7);
 });
 
 it('should call async function without problems', async () => {
@@ -251,7 +257,7 @@ test('passDownObj should work', async () => {
   });
 });
 
-test('afterHook should work', async () => {
+it('should throw error from the last middleware rather than return the response from the 1st middleware', async () => {
   const validateResponse: Middleware = ({ response }) => {
     if (response?.name === 'albert') {
       // eslint-disable-next-line no-throw-literal
@@ -285,36 +291,41 @@ test('afterHook should work', async () => {
   });
 });
 
-test('afterHook should receive one additional response in the parameter', async () => {
+test('the response in the parameter should work', async () => {
   const mockResponse = { message: 'awesome' };
 
-  const beforeMock1 = jest.fn();
-  const beforeMock2 = jest.fn();
-
-  const lambdaMock = jest.fn().mockImplementation(() => mockResponse);
-
-  const afterMock1 = jest.fn();
-  const afterMock2 = jest.fn();
+  const middleware1 = jest.fn() as jest.Mock<Middleware>;
+  const middleware2 = jest.fn() as jest.Mock<Middleware>;
+  const middleware3 = jest.fn().mockResolvedValue(mockResponse) as jest.Mock<
+    Middleware
+  >;
+  const middleware4 = jest.fn() as jest.Mock<Middleware>;
+  const middleware5 = jest.fn() as jest.Mock<Middleware>;
 
   const testHandler = lambdaWrapper({
-    middlewares: [beforeMock1, beforeMock2, lambdaMock, afterMock1, afterMock2],
+    middlewares: [
+      (middleware1 as unknown) as Middleware,
+      (middleware2 as unknown) as Middleware,
+      (middleware3 as unknown) as Middleware,
+      (middleware4 as unknown) as Middleware,
+      (middleware5 as unknown) as Middleware,
+    ],
   });
 
   await LambdaTester(testHandler).expectResult();
 
-  expect(beforeMock1).toBeCalledWith(
-    expect.not.objectContaining({ response: expect.anything() })
-  );
-  expect(beforeMock2).toBeCalledWith(
-    expect.not.objectContaining({ response: expect.anything() })
-  );
-  expect(lambdaMock).toBeCalledWith(
-    expect.not.objectContaining({ response: expect.anything() })
-  );
-  expect(afterMock1).toBeCalledWith(
-    expect.objectContaining({ response: mockResponse })
-  );
-  expect(afterMock2).toBeCalledWith(
-    expect.objectContaining({ response: mockResponse })
-  );
+  const paramToMiddleware1 = middleware1.mock.calls[0][0];
+  expect(paramToMiddleware1.response).toEqual({});
+
+  const paramToMiddleware2 = middleware2.mock.calls[0][0];
+  expect(paramToMiddleware2.response).toEqual({});
+
+  const paramToMiddleware3 = middleware3.mock.calls[0][0];
+  expect(paramToMiddleware3.response).toEqual({});
+
+  const paramToMiddleware4 = middleware4.mock.calls[0][0];
+  expect(paramToMiddleware4.response).toEqual(mockResponse);
+
+  const paramToMiddleware5 = middleware5.mock.calls[0][0];
+  expect(paramToMiddleware5.response).toEqual(mockResponse);
 });
