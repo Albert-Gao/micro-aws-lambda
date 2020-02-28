@@ -10,23 +10,18 @@ import {
 export const funcQueueExecutor = async ({
   event,
   context,
-  lambda,
-  beforeHooks = [],
-  afterHooks = [],
+  middlewares = [],
 }: {
   event: APIGatewayProxyEvent;
   context: Context;
-  lambda: Middleware;
-  beforeHooks?: Middleware[];
-  afterHooks?: Middleware[];
+  middlewares: Middleware[];
 }) => {
   let returnValue: PlainObject = {};
 
-  const chain = [...beforeHooks, lambda, ...afterHooks];
   let passDownObj = {};
 
-  for (let i = 0; i <= chain.length - 1; i += 1) {
-    const result = (await chain[i]({
+  for (let i = 0; i <= middlewares.length - 1; i += 1) {
+    const result = (await middlewares[i]({
       event,
       context,
       passDownObj,

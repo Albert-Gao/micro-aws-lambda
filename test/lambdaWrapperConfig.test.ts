@@ -8,7 +8,7 @@ it('should return an json response with traceInfo when config.addTraceInfoToResp
   const mockResponse = 1234;
 
   const testHandler = lambdaWrapper({
-    lambda: () => mockResponse,
+    middlewares: [() => mockResponse],
     config: {
       addTraceInfoToResponse: true,
     },
@@ -38,7 +38,7 @@ it('should return an json response with traceInfo when config.addTraceInfoToResp
   const mockResponse = { message: true };
 
   const testHandler = lambdaWrapper({
-    lambda: () => mockResponse,
+    middlewares: [() => mockResponse],
     config: {
       addTraceInfoToResponse: true,
     },
@@ -70,7 +70,7 @@ it('should log when config.logRequestInfo sets to true', async () => {
   const consoleLogMock = jest.spyOn(global.console, 'log');
 
   const testHandler = lambdaWrapper({
-    lambda: () => mockResponse,
+    middlewares: [() => mockResponse],
     config: {
       logRequestInfo: true,
     },

@@ -7,9 +7,11 @@ it('should return error when throwing httpError', async () => {
   const mockResponse = { message: true };
 
   const testHandler = lambdaWrapper({
-    lambda: () => {
-      throw httpError({ statusCode: 402, body: mockResponse });
-    },
+    middlewares: [
+      () => {
+        throw httpError({ statusCode: 402, body: mockResponse });
+      },
+    ],
   });
 
   const response = await LambdaTester(testHandler).expectResult();
@@ -29,7 +31,7 @@ it('should return error when returning httpError', async () => {
   const mockResponse = { message: true };
 
   const testHandler = lambdaWrapper({
-    lambda: () => httpError({ statusCode: 403, body: mockResponse }),
+    middlewares: [() => httpError({ statusCode: 403, body: mockResponse })],
   });
 
   const response = await LambdaTester(testHandler).expectResult();
