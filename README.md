@@ -109,35 +109,6 @@ type Middleware = ({
   | void;
 ```
 
-- `event` and `context` is immutable.
-- if you want to pass any info down, attach it to the `passDownObj` as a property, like `passDownObj.value = { message: 'checked' }`, the `passDownObj` object is mutable.
-- `response` is the response object (from the previous middleware) that will be returned in the end, it's not for mutating, only for a reference
-
-### 3. Simple handler
-
-Writing an API which will return a JSON and logging things like `APIGatewayID` and `CloudWatchID`, blah blah
-
-```typescript
-import { lambdaWrapper, Middleware } from 'micro-aws-lambda';
-
-const lambda: Middleware = () => {
-  return {
-    message: 'it works',
-  };
-};
-
-const handler = lambdaWrapper({
-  lambda,
-  config: {
-    addTraceInfoToResponse: true,
-  },
-});
-
-// call the API, you will get json response: {message: ""it works"}
-```
-
-### 4. Three minutes master
-
 - What will be returned?
 
   - the `return` value from the last middleware will be taken as the response
@@ -157,7 +128,26 @@ const handler = lambdaWrapper({
 - Anytime you want to pass something down the chain, use `passDownObj` from the parameter
   - just attach your value to it: `passDownObj.myValue = 123`, `myValue` could be any name
 
-### 5. Before hooks
+### 3. Simple handler
+
+Writing an API which will return a JSON and logging things like `APIGatewayID` and `CloudWatchID`, blah blah
+
+```typescript
+import { lambdaWrapper } from 'micro-aws-lambda';
+
+export const handler = lambdaWrapper({
+  lambda: () => ({
+    message: 'it works',
+  }),
+  config: {
+    addTraceInfoToResponse: true,
+  },
+});
+
+// call the API, you will get json response: {message: "it works"}
+```
+
+### 4. Before hooks
 
 What about I want to validate this request before executing my lambda? Easy, you just add a hook.
 
@@ -183,7 +173,7 @@ const handler = lambdaWrapper({
 
 Later on, you can reuse it in other lambdas.
 
-### 6. After hooks
+### 5. After hooks
 
 You can add `afterHooks` as well for changing response.
 The middleware in `afterHooks` will receive an additional `response` as the response.
@@ -209,7 +199,7 @@ const testHandler = lambdaWrapper({
 });
 ```
 
-### 7. Response
+### 6. Response
 
 There are 2 types for response:
 
@@ -256,7 +246,7 @@ The commons headers are:
 
 Supports `multiValueHeaders` and `isBase64Encoded` in case you need them.
 
-#### 7.1. Shortcuts
+#### 6.1. Shortcuts
 
 Compare to the above methods, the only difference is the shortcuts just sets the status code, you can still modify them if you want.
 
@@ -266,9 +256,9 @@ Compare to the above methods, the only difference is the shortcuts just sets the
 - `httpResponse`:
   - `success()`: 200
 
-### 8. Config
+### 7. Config
 
-#### 8.1 addTraceInfoToResponse
+#### 7.1 addTraceInfoToResponse
 
 It will add debug info into the response object
 
@@ -288,7 +278,7 @@ It will add debug info into the response object
 }
 ```
 
-#### 8.2 logRequestInfo
+#### 7.2 logRequestInfo
 
 It will `console.log`:
 
@@ -297,7 +287,7 @@ It will `console.log`:
 - `Aws-Api-Gateway-Request-Id`
 - `Identity-Source-Ip`
 
-## 9. Credits
+## 8. Credits
 
 - The `beforeHooks` and `afterHooks` mechanism heavily inspired from my favourite REST framework: [Feathers.JS](https://feathersjs.com/)
 - This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
