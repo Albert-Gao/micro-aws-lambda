@@ -22,7 +22,7 @@ it('should return an json response from handler', async () => {
   });
 });
 
-it('should return an  response from beforeHook', async () => {
+it('should return an response from beforeHook', async () => {
   const lambdaMock = jest.fn();
   const mockError = { name: 'test' };
 
@@ -40,6 +40,42 @@ it('should return an  response from beforeHook', async () => {
   expect(lambdaMock).not.toBeCalled();
   expect(response).toEqual({
     body: JSON.stringify(mockError),
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 200,
+  });
+});
+
+it('should pass the response from beforeHook to afterHook', async () => {
+  const mockResponse = { name: 'test' };
+  const beforeHookMock: jest.Mock<Middleware> = jest.fn();
+  const lambdaMock: jest.Mock<Middleware> = jest.fn();
+  const afterHookMock: jest.Mock<Middleware> = jest.fn();
+
+  const testHandler = lambdaWrapper({
+    lambda: (lambdaMock as unknown) as Middleware,
+    beforeHooks: [
+      () => mockResponse,
+      (beforeHookMock as unknown) as Middleware,
+    ],
+    afterHooks: [(afterHookMock as unknown) as Middleware],
+  });
+
+  const response = await LambdaTester(testHandler).expectResult();
+
+  const paramOfBeforeHookMock = beforeHookMock.mock.calls[0][0];
+  const paramOfLambdaMock = lambdaMock.mock.calls[0][0];
+  const paramOfAfterHookMock = afterHookMock.mock.calls[0][0];
+
+  expect(paramOfBeforeHookMock.response).toEqual(mockResponse);
+  expect(paramOfLambdaMock.response).toEqual(mockResponse);
+  expect(paramOfAfterHookMock.response).toEqual(mockResponse);
+
+  expect(response).toEqual({
+    body: JSON.stringify(mockResponse),
     headers: {
       'Access-Control-Allow-Credentials': true,
       'Access-Control-Allow-Origin': '*',
@@ -157,6 +193,26 @@ it('should call async function without problems', async () => {
   });
 });
 
+it('should pass async result to the next middleware without problems', async () => {
+  const mockResponse = { message: 'wow' };
+
+  const lambdaMock = async function() {
+    return Promise.resolve(mockResponse);
+  };
+  const afterMock = jest.fn() as jest.Mock<Middleware>;
+
+  const testHandler = lambdaWrapper({
+    lambda: lambdaMock,
+    afterHooks: [(afterMock as unknown) as Middleware],
+  });
+
+  await LambdaTester(testHandler).expectResult();
+
+  const paramOfAfterHook = afterMock.mock.calls[0][0];
+
+  expect(paramOfAfterHook.response).toEqual(mockResponse);
+});
+
 test('passDownObj should work', async () => {
   const validateResponse: Middleware = ({ passDownObj }) => {
     if (passDownObj.name === 'albert') {
@@ -191,7 +247,7 @@ test('passDownObj should work', async () => {
   });
 });
 
-test('111 should work', async () => {
+test('afterHook should work', async () => {
   const validateResponse: Middleware = ({ response }) => {
     if (response?.name === 'albert') {
       // eslint-disable-next-line no-throw-literal

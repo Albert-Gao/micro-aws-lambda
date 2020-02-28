@@ -24,7 +24,7 @@ export type Middleware = ({
   event: APIGatewayProxyEvent;
   context: Context;
   passDownObj: PlainObject;
-  response?: any;
+  readonly response?: any;
 }) =>
   | string
   | number

@@ -22,39 +22,19 @@ export const funcQueueExecutor = async ({
 }) => {
   let returnValue: PlainObject = {};
 
-  const beforeHooksWithHandler = [...beforeHooks, lambda];
-  const endIndex = beforeHooksWithHandler.length - 1;
+  const chain = [...beforeHooks, lambda, ...afterHooks];
   let passDownObj = {};
 
-  for (let i = 0; i <= endIndex; i += 1) {
-    const result = beforeHooksWithHandler[i]({
+  for (let i = 0; i <= chain.length - 1; i += 1) {
+    const result = (await chain[i]({
       event,
       context,
       passDownObj,
-    }) as PlainObject;
+      response: returnValue,
+    })) as PlainObject;
 
-    if (result) {
+    if (result != null) {
       returnValue = result;
-    }
-  }
-
-  if (!afterHooks.length) {
-    return returnValue;
-  }
-
-  const responseFromBeforeHooksAndHandler: PlainObject = returnValue;
-  const afterHookEndIndex = afterHooks.length - 1;
-
-  for (let j = 0; j <= afterHookEndIndex; j += 1) {
-    const resultFromAfterHooks = afterHooks[j]({
-      event,
-      context,
-      passDownObj,
-      response: responseFromBeforeHooksAndHandler,
-    }) as PlainObject;
-
-    if (resultFromAfterHooks) {
-      returnValue = resultFromAfterHooks;
     }
   }
 
