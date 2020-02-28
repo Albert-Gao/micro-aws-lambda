@@ -13,14 +13,10 @@ import {
 } from 'aws-lambda';
 
 export const lambdaWrapper = ({
-  lambda,
-  beforeHooks,
-  afterHooks,
+  middlewares = [],
   config,
 }: {
-  lambda: Middleware;
-  beforeHooks?: Middleware[];
-  afterHooks?: Middleware[];
+  middlewares: Middleware[];
   config?: {
     addTraceInfoToResponse?: boolean;
     logRequestInfo?: boolean;
@@ -41,9 +37,7 @@ export const lambdaWrapper = ({
       response = await funcQueueExecutor({
         event,
         context,
-        beforeHooks,
-        lambda,
-        afterHooks,
+        middlewares,
       });
     } catch (error) {
       console.log(error);

@@ -4,60 +4,51 @@
 
 ## Intro
 
-- Ready to go Lambda Proxy library
+- For Lambda Proxy mode
 - Written in Typescript
 - Zero runtime dependencies
 - Tiny: 7KB after minified
 - Extendable with middlewares
-  - before (handler) hooks
-  - after (handler) hooks
+  - simple reasoning, just running one by one
   - early exit for just `throw` `httpError()` or anything
   - pass values among middlewares
 - Return response
   - an object, it will be converted to a Lambda compatible response
-  - a customizable `httpResponse()` / `success()`
-  - a customizable `httpError()` / `badRequest()` / `internalError()`
+  - a customizable `httpResponse()` / `success()` (200)
+  - a customizable `httpError()` / `badRequest()` (400) / `internalError()` (500)
   - or string, number, boolean
 - Easy debug:
   - Adding debug info to response object
   - console.log event / context
 
-# Why do you build this lib
+## Why do you build this lib
 
-Lambda Proxy is making it a flash to creating an API endpoint. But that's just the infrastructure part. It doesn't mean your business logic can be simplified.
+AWS Lambda is making it a flash to creating an API endpoint. But that's just the infrastructure part. It doesn't mean your business logic can be simplified.
 
 - I need a middleware setup to decouple my business logic without installing a lib that has many dependencies and result in a bigger bundle size as well.
-- I want to deal with a simple interface, where `before` is `before` and `after` is `after`. I don't want to deal with a mental model where a middleware will be invoked twice for both stages, and handle both the `before` and `after` stage in one function.
+- I want to deal with a simple interface, where the order is just one by one. I don't want to deal with a mental model where a middleware will be invoked twice for both stages, and handle both the `before` and `after` stage in one function.
 
-# What problems does it solve
+## What problems does it solve
 
-Middleware is for decoupling logic. I learned the value of `beforeHooks` and `afterHooks` after adopting [Feathers.JS](https://feathersjs.com/). Which has a beautiful concept of 3 layers for every endpoint, and I found myself rarely have any boilerplate code anymore. In `micro-aws-lambda`'s context, `beforeHooks` -> `lambda` -> `afterHooks`.
+Middleware is for decoupling logic. I learned the value of `beforeHooks` and `afterHooks` after adopting [Feathers.JS](https://feathersjs.com/). Which has a beautiful concept of 3 layers for every endpoint, and I found myself start the declarative programming for the backend. No more code for the repeating work. In `micro-aws-lambda`'s context, it is just an array of `Middleware`.
 
 Let's say a simple return-a-user endpoint, what does it look like when you are using `micro-aws-lambda`
 
 ```javascript
-export lambdaWrapper({
-  beforeHooks: [
+const handler = lambdaWrapper({
+  middlewares: [
     validateRequestBody(GetUserSchema),
     isStillEmployed,
-    verifyPaymentStatus
-  ],
-
-  lambda: justReturnUserObjectDirectlyFromDB,
-
-  afterHooks: [
+    verifyPaymentStatus,
+    justReturnUserObjectDirectlyFromDB,
     removeFieldsFromResponse('password', 'address'),
     combineUserNames,
-    transformResponseToClientSideStructure
-  ]
-})
+    transformResponseToClientSideStructure,
+  ],
+});
 ```
 
-As you can see here, the `beforeHooks` and `afterHooks` can contain logic piece, and beyond this example, you can see the true value of it: Middlewares like `isStillEmployed` and `combineUserNames` should be potentially reuseable when composing the other endpoints. Ideally, you can just compose your future lambda without writing any code except for an integration test. Every middleware here can be fully tested and ready to use.
-
-This concept doesn't apply only to this library, but to any middleware based library or framework. In short, you always want to make your `lambda` as deadly simple as possible, in this example, `justReturnUserObjectDirectlyFromDB`. So any logic for processing the entity can be added to `afterHooks`, which you can use to compose later. And via this way, maybe the `justReturnUserObjectDirectlyFromDB` can be changed to something like `justReturnObjectDirectlyFromDB('company')`, because it is so generic, you can apply to the other entities other than just `user` entity.
-
-Another pain point is every time I want to trace the lambda logs in CloudWatch, a lot of information needed like the logId. I'd love to have a simple switch there so any time I want to trace the lambda, I should receive everything I need in the response, I can simply copy and paste in CloudWatch to get the information.
+Ideally, you can just compose your future lambda without writing any code except for an integration test. The logic will be declarative. Every middleware here can be fully tested and ready to reuse.
 
 ## Usage
 
@@ -68,23 +59,16 @@ Another pain point is every time I want to trace the lambda logs in CloudWatch, 
 ### 2. Quick start
 
 ```typescript
-import { Middleware, lambdaWrapper } from 'micro-aws-lambda';
-
-const lambda: Middleware = ({event, context, passDownObj}) => {}
+import { lambdaWrapper } from 'micro-aws-lambda';
 
 const handler = lambdaWrapper({
-  lambda,
-  beforeHooks: [],
-  afterHooks: [],
-  config: {
-      addTraceInfoToResponse: false;
-      logRequestInfo: false;
-  }
+  middlewares: [() => ({ message: 'it works' })],
 });
+
+// call the API, you will get json response: { message: "it works" }
 ```
 
-- The execution order is: `beforeHooks` -> `lambda` -> `afterHooks`.
-- `beforeHooks`, `lambda`, `afterHooks` all have the same signature:
+### 3. The type of the middleware
 
 ```typescript
 type Middleware = ({
@@ -95,8 +79,8 @@ type Middleware = ({
 }: {
   event: APIGatewayProxyEvent; // from @types/aws-lambda
   context: Context; // from @types/aws-lambda
-  passDownObj: PlainObject; // a plain JS object you can attach your property to pass value down
-  response?: any; // it is the response object from the previous middleware
+  passDownObj: PlainObject; // for sharing info among middlewares
+  response?: any; // for checking the http response
 }) =>
   | string
   | number
@@ -109,99 +93,46 @@ type Middleware = ({
   | void;
 ```
 
-- What will be returned?
+### 4. Two minutes master
 
-  - the `return` value from the last middleware will be taken as the response
-  - the error thrown by one of the middleware (all the rest middleware won't get executed)
+- How to control the flow?
 
-- You can `return` in any middleware **(which won't stop the chain)**:
+  - `return` WON'T stop the execution
+  - `throw` will STOP the execution
+
+- What can you `return`
+
   - a `httpResponse()`
   - or a `success()` (just a `httpResponse()` with status code set to 200, you can still change it)
-  - or an plain object / string / number which will be wrapped with `success()`
-  - it will be passed to the next middleware as the `response` parameter
-- You can `throw` **(which will stop the chain so any middlewares after it won't be executed)**:
+  - or an plain object / string / number (which will be auto-wrapped with `success()` in the end)
+  - Any value `return`ed will be passed to the next middleware as the `response` parameter
+
+- What can you `throw`
+
   - an `httpError()`
   - an `badRequest()`
   - an `internalError()`
-- Anytime you want to check what will be returned in the end, check the `response` from the parameter
-  - to change the `response`, you just `return` in your current middleware
-- Anytime you want to pass something down the chain, use `passDownObj` from the parameter
-  - just attach your value to it: `passDownObj.myValue = 123`, `myValue` could be any name
+  - or anything else
 
-### 3. Simple handler
+- How to check what will be returned as the Http response
 
-Writing an API which will return a JSON and logging things like `APIGatewayID` and `CloudWatchID`, blah blah
+  - check the `response` from the parameter
 
-```typescript
-import { lambdaWrapper } from 'micro-aws-lambda';
+- How to change the `response`
 
-export const handler = lambdaWrapper({
-  lambda: () => ({
-    message: 'it works',
-  }),
-  config: {
-    addTraceInfoToResponse: true,
-  },
-});
+  - you just `return` a new one in your current middleware
 
-// call the API, you will get json response: {message: "it works"}
-```
+- How to pass something down the chain,
 
-### 4. Before hooks
+  - use `passDownObj` from the parameter
+  - attach your value to it: `passDownObj.myValue = 123`, `myValue` could be any name
 
-What about I want to validate this request before executing my lambda? Easy, you just add a hook.
+- What will be returned if every middlewares is returning
+  - the last one wins, it's simply because you can replace the current response by `return`ing a new one.
 
-In the following case, if the request name is 'albert', only `validateRequest` will be called.
+### 5. About the built-in responses
 
-```typescript
-import { badRequest } from 'micro-aws-lambda';
-
-const validateRequest: Middleware = ({ event }) => {
-  if (event.request.body.name === 'albert') {
-    throw badRequest({
-      message: 'bad user, bye bye',
-    });
-  }
-};
-
-const handler = lambdaWrapper({
-  // adding to the array
-  // omitting the other things for briefing
-  beforeHooks: [validateRequest],
-});
-```
-
-Later on, you can reuse it in other lambdas.
-
-### 5. After hooks
-
-You can add `afterHooks` as well for changing response.
-The middleware in `afterHooks` will receive an additional `response` as the response.
-
-The following handler will only return `{ message: 'bad user, bye bye' }`
-
-```typescript
-import { badRequest } from 'micro-aws-lambda';
-
-const validateResponse: Middleware = ({ response }) => {
-  if (response?.name === 'albert') {
-    throw badRequest({
-      message: 'bad user, bye bye',
-    };
-  })
-};
-
-const testHandler = lambdaWrapper({
-  lambda: () => ({
-    name: 'albert',
-  }),
-  afterHooks: [validateResponse],
-});
-```
-
-### 6. Response
-
-There are 2 types for response:
+There are 2 types of response:
 
 - `httpError()` for `throw`
 - `httpResponse()` for `return`
@@ -246,7 +177,7 @@ The commons headers are:
 
 Supports `multiValueHeaders` and `isBase64Encoded` in case you need them.
 
-#### 6.1. Shortcuts
+#### 5.1. Shortcuts
 
 Compare to the above methods, the only difference is the shortcuts just sets the status code, you can still modify them if you want.
 
@@ -256,9 +187,9 @@ Compare to the above methods, the only difference is the shortcuts just sets the
 - `httpResponse`:
   - `success()`: 200
 
-### 7. Config
+### 6. Config
 
-#### 7.1 addTraceInfoToResponse
+#### 6.1 addTraceInfoToResponse
 
 It will add debug info into the response object
 
@@ -278,7 +209,7 @@ It will add debug info into the response object
 }
 ```
 
-#### 7.2 logRequestInfo
+#### 6.2 logRequestInfo
 
 It will `console.log`:
 
@@ -287,7 +218,77 @@ It will `console.log`:
 - `Aws-Api-Gateway-Request-Id`
 - `Identity-Source-Ip`
 
-## 8. Credits
+### 7. Examples
 
-- The `beforeHooks` and `afterHooks` mechanism heavily inspired from my favourite REST framework: [Feathers.JS](https://feathersjs.com/)
+#### 7.1 Validation
+
+In the following case, if the request name is 'albert', only `validateRequest` will be called.
+
+```typescript
+import { badRequest, Middleware } from 'micro-aws-lambda';
+
+const validateRequest: Middleware = ({ event }) => {
+  if (event.request.body.name === 'albert') {
+    throw badRequest({
+      message: 'bad user, bye bye',
+    });
+  }
+};
+
+// it will return a 400 error { message: 'bad user, bye bye' }
+```
+
+Or if you like me, you can write a simple validating middleware with the `yup` schema, you can then reuse from the client side.
+
+```typescript
+import { Schema } from 'yup';
+import { lambdaWrapper, Middleware, badRequest } from 'micro-aws-lambda';
+
+const validateBodyWithYupSchema = (schema: Schema): Middleware => async ({
+  event,
+}) => {
+  if (!schema.isValid(event.body)) {
+    throw badRequest('bad request');
+  }
+};
+
+const handler = lambdaWrapper({
+  middlewares: [validateBodyWithYupSchema(myYupSchema)],
+});
+```
+
+#### 7.2 processing Response
+
+```typescript
+import { badRequest } from 'micro-aws-lambda';
+
+const removeFieldsFromResponse = (fieldsToRemove: string[]): Middleware = ({ response }) => {
+    const newResponse = Object.assign({}, response);
+
+    fieldsToRemove.forEach(field => {
+      if (newResponse[field] != null) {
+        delete newResponse[field]
+      }
+    })
+
+    return newResponse;
+};
+
+const testHandler = lambdaWrapper({
+  middlewares: [
+    () => ({
+      name: 'albert',
+      password: '123qwe',
+      address: 'somewhere on earth'
+    }),
+    removeFieldsFromResponse(['password', 'address'])
+   ],
+});
+
+// response will be  { name: 'albert' }
+```
+
+## Credits
+
+- The initial version is heavily inspired by my favourite REST framework: [Feathers.JS](https://feathersjs.com/)
 - This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
