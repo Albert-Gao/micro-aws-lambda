@@ -23,7 +23,7 @@ export const lambdas = (
   const wrapperHandler: Handler<
     APIGatewayProxyEvent,
     APIGatewayProxyResult
-  > = async (event, context, callback) => {
+  > = async (event, context) => {
     let response: HttpError | PlainObject | HttpResponse = internalError({
       body: {
         error: 'Response not set',
@@ -54,13 +54,10 @@ export const lambdas = (
         );
       }
 
-      callback(
-        null,
-        buildResponseObject({
-          ...response,
-          shouldStringifyBody: true,
-        })
-      );
+      return buildResponseObject({
+        ...response,
+        shouldStringifyBody: true,
+      });
     }
   };
 
