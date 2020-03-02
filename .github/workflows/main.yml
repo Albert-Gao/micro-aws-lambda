@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-      - run: npm install --silent
+      - run: npm ci --silent
       - run: npm run lint
       - run: npm run test
       - run: npm run build
