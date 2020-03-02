@@ -44,3 +44,35 @@ it('should return error when returning httpError', async () => {
     },
   });
 });
+
+it('should return success() run even when no middlewares is passing', async () => {
+  const testHandler = lambdas();
+
+  const response = await LambdaTester(testHandler).expectResult();
+
+  expect(response).toEqual({
+    statusCode: 200,
+    body: '{}',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+      'Content-Type': 'application/json',
+    },
+  });
+});
+
+it('should return success() run even when middlewares is empty', async () => {
+  const testHandler = lambdas([]);
+
+  const response = await LambdaTester(testHandler).expectResult();
+
+  expect(response).toEqual({
+    statusCode: 200,
+    body: '{}',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+      'Content-Type': 'application/json',
+    },
+  });
+});

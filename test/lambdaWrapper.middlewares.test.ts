@@ -209,7 +209,7 @@ it('should pass async result to the next middleware without problems', async () 
 });
 
 test('passDownObj should work', async () => {
-  const validateResponse: Middleware = ({ passDownObj }) => {
+  const validateResponse: Middleware<{ name: string }> = ({ passDownObj }) => {
     if (passDownObj.name === 'albert') {
       // eslint-disable-next-line no-throw-literal
       throw {

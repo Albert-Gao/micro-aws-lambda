@@ -1,7 +1,9 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { PlainObject, HttpResponse } from './types';
 
-interface HttpResponseParams extends Omit<APIGatewayProxyResult, 'body'> {
+interface HttpResponseParams
+  extends Omit<APIGatewayProxyResult, 'body' | 'statusCode'> {
+  statusCode?: number;
   body: any;
 }
 
@@ -27,16 +29,16 @@ export class HttpError extends Error {
   isBase64Encoded: APIGatewayProxyResult['isBase64Encoded'];
 
   constructor({
-    statusCode = 400,
+    statusCode,
     headers,
     body,
     multiValueHeaders,
     isBase64Encoded,
-  }: HttpResponse) {
+  }: HttpResponseParams) {
     super(JSON.stringify(body));
     Object.setPrototypeOf(this, HttpError.prototype);
 
-    this.statusCode = statusCode;
+    this.statusCode = statusCode || 400;
     this.body = body;
 
     if (headers) {
@@ -65,14 +67,14 @@ export class HttpError extends Error {
 }
 
 export const httpError = ({
-  statusCode = 400,
+  statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
 }: Partial<HttpResponseParams>) =>
   new HttpError({
-    statusCode,
+    statusCode: statusCode || 400,
     body,
     headers: getMergedHeaders(headers),
     multiValueHeaders,
@@ -80,7 +82,7 @@ export const httpError = ({
   });
 
 export function buildResponseObject<T extends true | false>({
-  statusCode = 200,
+  statusCode,
   body,
   headers,
   multiValueHeaders,
@@ -90,7 +92,7 @@ export function buildResponseObject<T extends true | false>({
   shouldStringifyBody?: T;
 }): T extends true ? APIGatewayProxyResult : HttpResponse {
   const result: any = {
-    statusCode,
+    statusCode: statusCode || 200,
     body: body,
     headers: getMergedHeaders(headers),
   };
@@ -113,14 +115,14 @@ export function buildResponseObject<T extends true | false>({
 }
 
 export const httpResponse = ({
-  statusCode = 200,
+  statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
 }: Partial<HttpResponseParams>): HttpResponse =>
   buildResponseObject({
-    statusCode,
+    statusCode: statusCode || 200,
     body,
     headers,
     multiValueHeaders,
@@ -129,14 +131,14 @@ export const httpResponse = ({
   });
 
 export const success = ({
-  statusCode = 200,
+  statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
 }: Partial<HttpResponseParams>): HttpResponse =>
   buildResponseObject({
-    statusCode,
+    statusCode: statusCode || 200,
     headers: getMergedHeaders(headers),
     body,
     multiValueHeaders,
@@ -145,14 +147,14 @@ export const success = ({
   });
 
 export const badRequest = ({
-  statusCode = 400,
+  statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
 }: Partial<HttpResponseParams>) =>
   new HttpError({
-    statusCode,
+    statusCode: statusCode || 400,
     body,
     headers,
     multiValueHeaders,
@@ -160,14 +162,14 @@ export const badRequest = ({
   });
 
 export const internalError = ({
-  statusCode = 500,
+  statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
 }: Partial<HttpResponseParams>) =>
   new HttpError({
-    statusCode,
+    statusCode: statusCode || 500,
     body,
     headers,
     multiValueHeaders,

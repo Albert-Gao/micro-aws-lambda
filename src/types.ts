@@ -7,7 +7,7 @@ import { HttpError } from './httpResponse';
 import { createTraceInfo } from './utils';
 
 export interface PlainObject {
-  [key: string]: string | number | PlainObject | boolean | object;
+  [key: string]: string | number | boolean | object;
 }
 
 export interface HttpResponse extends Omit<APIGatewayProxyResult, 'body'> {
@@ -16,14 +16,14 @@ export interface HttpResponse extends Omit<APIGatewayProxyResult, 'body'> {
   };
 }
 
-export type Middleware = ({
+export type Middleware<PassDownObjType = any> = ({
   event,
   context,
   passDownObj,
 }: {
   event: APIGatewayProxyEvent;
   context: Context;
-  passDownObj: PlainObject;
+  passDownObj: PassDownObjType;
   readonly response?: any;
 }) =>
   | string

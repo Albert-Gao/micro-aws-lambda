@@ -10,7 +10,7 @@ import {
 export const funcQueueExecutor = async ({
   event,
   context,
-  middlewares = [],
+  middlewares,
 }: {
   event: APIGatewayProxyEvent;
   context: Context;
@@ -40,16 +40,15 @@ export const createTraceInfo = (
   event: APIGatewayProxyEvent,
   context: Context
 ) => ({
-  endpoint:
-    event.requestContext?.domainName ?? '' + event.requestContext?.path ?? '',
+  endpoint: event.requestContext.domainName ?? '' + event.requestContext.path,
   requestBody: event.body || '',
-  requestMethod: event.requestContext?.httpMethod ?? '',
+  requestMethod: event.requestContext.httpMethod,
 
-  country: event.headers?.['CloudFront-Viewer-Country'] ?? '',
-  lambdaRequestId: context.awsRequestId ?? '',
-  logStreamName: context.logStreamName ?? '',
-  logGroupName: context.logGroupName ?? '',
-  apiGatewayId: event.requestContext?.requestId ?? '',
+  country: event.headers['CloudFront-Viewer-Country'] ?? '',
+  lambdaRequestId: context.awsRequestId,
+  logStreamName: context.logStreamName,
+  logGroupName: context.logGroupName,
+  apiGatewayId: event.requestContext.requestId,
 });
 
 export const addTraceInfoToResponseBody = (
@@ -86,14 +85,8 @@ export const logRequestInfo = (
   event: APIGatewayProxyEvent,
   context: Context
 ) => {
-  console.log(
-    'Aws-Api-Gateway-Request-Id: ',
-    event.requestContext?.requestId ?? ''
-  );
-  console.log(
-    'Identity-Source-Ip: ',
-    event.requestContext?.identity?.sourceIp ?? ''
-  );
+  console.log('Aws-Api-Gateway-Request-Id: ', event.requestContext.requestId);
+  console.log('Identity-Source-Ip: ', event.requestContext.identity.sourceIp);
   console.log('EVENT: ', event);
   console.log('CONTEXT: ', context);
 };

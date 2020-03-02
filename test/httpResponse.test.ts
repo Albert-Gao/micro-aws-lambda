@@ -2,6 +2,10 @@ import {
   badRequest,
   buildResponseObject,
   HttpError,
+  httpError,
+  success,
+  internalError,
+  httpResponse,
 } from '../src/httpResponse';
 
 test('badRequest() should return an HTTPError', () => {
@@ -19,6 +23,13 @@ test('badRequest() should return an HTTPError', () => {
     'Content-Type': 'application/json',
   });
   expect(result.multiValueHeaders).not.toBeDefined();
+});
+
+test('HttpError will set default statusCode to 400', () => {
+  const err = new HttpError({
+    body: { message: true },
+  });
+  expect(err.statusCode).toBe(400);
 });
 
 test('HttpError class constructor should honor multiValueHeaders', () => {
@@ -74,6 +85,16 @@ test('HttpError.toHttpResponse should return an plain object rather than an Erro
   expect(result.isBase64Encoded).toBeUndefined();
 });
 
+test('httpError should set default statusCode to 400', () => {
+  const err = httpError({ body: { message: true } });
+  expect(err.statusCode).toBe(400);
+});
+
+test('buildResponseObject should set default statusCode to 200', () => {
+  const res = buildResponseObject({ body: { message: true } });
+  expect(res.statusCode).toBe(200);
+});
+
 test('buildResponseObject should honor multiValueHeaders', () => {
   const mockBody = { message: 'test' };
   const multiValueHeaders = {
@@ -123,4 +144,24 @@ test('buildResponseObject should isBase64Encoded', () => {
     isBase64Encoded: true,
     statusCode: 300,
   });
+});
+
+test('badRequest should set default statusCode to 400', () => {
+  const res = badRequest({ body: { message: true } });
+  expect(res.statusCode).toBe(400);
+});
+
+test('internalError should set default statusCode to 500', () => {
+  const res = internalError({ body: { message: true } });
+  expect(res.statusCode).toBe(500);
+});
+
+test('httpResponse should set default statusCode to 200', () => {
+  const res = httpResponse({ body: { message: true } });
+  expect(res.statusCode).toBe(200);
+});
+
+test('success should set default statusCode to 200', () => {
+  const res = success({ body: { message: true } });
+  expect(res.statusCode).toBe(200);
 });

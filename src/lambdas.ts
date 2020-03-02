@@ -13,7 +13,7 @@ import {
 } from 'aws-lambda';
 
 export const lambdas = (
-  middlewares: Middleware[],
+  middlewares: Middleware[] = [],
   config?: {
     addTraceInfoToResponse?: boolean;
     logRequestInfo?: boolean;
