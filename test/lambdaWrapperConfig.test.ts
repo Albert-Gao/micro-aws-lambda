@@ -1,5 +1,5 @@
 // TODO: test if we can return non object
-import { lambdaWrapper } from '../src';
+import { lambdas } from '../src';
 import { getMockContext, getMockEvent } from './testResources';
 import * as utils from '../src/utils';
 const LambdaTester = require('lambda-tester');
@@ -7,11 +7,8 @@ const LambdaTester = require('lambda-tester');
 it('should return an json response with traceInfo when config.addTraceInfoToResponse sets to true [response is non-object]', async () => {
   const mockResponse = 1234;
 
-  const testHandler = lambdaWrapper({
-    middlewares: [() => mockResponse],
-    config: {
-      addTraceInfoToResponse: true,
-    },
+  const testHandler = lambdas([() => mockResponse], {
+    addTraceInfoToResponse: true,
   });
 
   const mockEvent = getMockEvent();
@@ -37,11 +34,8 @@ it('should return an json response with traceInfo when config.addTraceInfoToResp
 it('should return an json response with traceInfo when config.addTraceInfoToResponse sets to true [response is object]', async () => {
   const mockResponse = { message: true };
 
-  const testHandler = lambdaWrapper({
-    middlewares: [() => mockResponse],
-    config: {
-      addTraceInfoToResponse: true,
-    },
+  const testHandler = lambdas([() => mockResponse], {
+    addTraceInfoToResponse: true,
   });
 
   const mockEvent = getMockEvent();
@@ -69,11 +63,8 @@ it('should log when config.logRequestInfo sets to true', async () => {
   const logRequestInfoMock = jest.spyOn(utils, 'logRequestInfo');
   const consoleLogMock = jest.spyOn(global.console, 'log');
 
-  const testHandler = lambdaWrapper({
-    middlewares: [() => mockResponse],
-    config: {
-      logRequestInfo: true,
-    },
+  const testHandler = lambdas([() => mockResponse], {
+    logRequestInfo: true,
   });
 
   const mockEvent = getMockEvent();

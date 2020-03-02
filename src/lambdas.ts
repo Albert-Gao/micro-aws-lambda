@@ -12,21 +12,18 @@ import {
   Handler,
 } from 'aws-lambda';
 
-export const lambdaWrapper = ({
-  middlewares = [],
-  config,
-}: {
-  middlewares: Middleware[];
+export const lambdas = (
+  middlewares: Middleware[],
   config?: {
     addTraceInfoToResponse?: boolean;
     logRequestInfo?: boolean;
-  };
-}) => {
+  }
+) => {
   // @ts-ignore
   const wrapperHandler: Handler<
     APIGatewayProxyEvent,
     APIGatewayProxyResult
-  > = async (event, context, callback) => {
+  > = async (event, context) => {
     let response: HttpError | PlainObject | HttpResponse = internalError({
       body: {
         error: 'Response not set',
@@ -57,13 +54,10 @@ export const lambdaWrapper = ({
         );
       }
 
-      callback(
-        null,
-        buildResponseObject({
-          ...response,
-          shouldStringifyBody: true,
-        })
-      );
+      return buildResponseObject({
+        ...response,
+        shouldStringifyBody: true,
+      });
     }
   };
 

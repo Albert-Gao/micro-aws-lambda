@@ -16,7 +16,7 @@ jobs:
           node-version: '12.x'
 
       - run: npm ci --silent
-      - run: npm run coveralls
+      - run: npm run coverage
 
       - name: Coveralls
         uses: coverallsapp/github-action@master

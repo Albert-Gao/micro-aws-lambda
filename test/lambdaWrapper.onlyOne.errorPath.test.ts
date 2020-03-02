@@ -1,18 +1,16 @@
 // TODO: test if we can return non object
 
-import { lambdaWrapper, httpError } from '../src';
+import { lambdas, httpError } from '../src';
 const LambdaTester = require('lambda-tester');
 
 it('should return error when throwing httpError', async () => {
   const mockResponse = { message: true };
 
-  const testHandler = lambdaWrapper({
-    middlewares: [
-      () => {
-        throw httpError({ statusCode: 402, body: mockResponse });
-      },
-    ],
-  });
+  const testHandler = lambdas([
+    () => {
+      throw httpError({ statusCode: 402, body: mockResponse });
+    },
+  ]);
 
   const response = await LambdaTester(testHandler).expectResult();
 
@@ -30,9 +28,9 @@ it('should return error when throwing httpError', async () => {
 it('should return error when returning httpError', async () => {
   const mockResponse = { message: true };
 
-  const testHandler = lambdaWrapper({
-    middlewares: [() => httpError({ statusCode: 403, body: mockResponse })],
-  });
+  const testHandler = lambdas([
+    () => httpError({ statusCode: 403, body: mockResponse }),
+  ]);
 
   const response = await LambdaTester(testHandler).expectResult();
 

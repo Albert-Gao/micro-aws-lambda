@@ -7,7 +7,7 @@ import { HttpError } from './httpResponse';
 import { createTraceInfo } from './utils';
 
 export interface PlainObject {
-  [key: string]: string | number | PlainObject | boolean;
+  [key: string]: string | number | PlainObject | boolean | object;
 }
 
 export interface HttpResponse extends Omit<APIGatewayProxyResult, 'body'> {
