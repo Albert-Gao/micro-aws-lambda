@@ -14,7 +14,8 @@
     "build": "tsdx build",
     "test": "tsdx test",
     "lint": "tsdx lint",
-    "release": "np --no-publish"
+    "release": "np --no-publish",
+    "coverage": "npm run test -- --coverage"
   },
   "repository": {
     "type": "git",
