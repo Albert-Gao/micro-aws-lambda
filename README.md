@@ -2,15 +2,15 @@
 
 <img src='https://github.com/Albert-Gao/micro-aws-lambda/blob/master/logo.png?raw=true' maxWidth="100%" height='auto' />
 
-<div style='display:flex; justify-content:space-around flex-wrap:wrap;'>
-
 [![npm package](https://badgen.net/npm/v/micro-aws-lambda?icon=npm)](https://www.npmjs.com/package/micro-aws-lambda)
 
 [![combined checks](https://badgen.net/github/checks/albert-gao/micro-aws-lambda?label=ci)](https://github.com/Albert-Gao/micro-aws-lambda/actions)
 
 [![last commit](https://badgen.net/github/last-commit/albert-gao/micro-aws-lambda)](https://github.com/Albert-Gao/micro-aws-lambda)
 
-[![test coverage](https://coveralls.io/repos/github/Albert-Gao/micro-aws-lambda/badge.svg)](https://coveralls.io/github/Albert-Gao/micro-aws-lambda)
+[![licence](https://badgen.net/npm/license/micro-aws-lambda)](https://github.com/Albert-Gao/micro-aws-lambda)
+
+[![test coverage](https://badgen.net/coveralls/c/github/Albert-Gao/micro-aws-lambda)](https://coveralls.io/github/Albert-Gao/micro-aws-lambda)
 
 [![types](https://badgen.net/npm/types/micro-aws-lambda)](https://www.npmjs.com/package/micro-aws-lambda)
 
@@ -19,8 +19,6 @@
 [![minified + gzip](https://badgen.net/bundlephobia/minzip/micro-aws-lambda)](https://bundlephobia.com/result?p=micro-aws-lambda@latest)
 
 [![twitter](https://badgen.net/twitter/follow/albertgao)](https://twitter.com/albertgao)
-
-</div>
 
 ## Intro
 
