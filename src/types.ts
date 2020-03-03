@@ -31,7 +31,7 @@ export type Middleware<PassDownObjType = any> = ({
   | boolean
   | PlainObject
   | APIGatewayProxyResult
-  | Promise<PlainObject | APIGatewayProxyResult>
+  | Promise<PlainObject | APIGatewayProxyResult | void>
   | HttpError
   | HttpResponse
   | void;
