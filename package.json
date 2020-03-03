@@ -42,6 +42,6 @@
     "typescript": "^3.8.2"
   },
   "dependencies": {
-    "@types/aws-lambda": "^8.10.44"
+    "@types/aws-lambda": "^8.10.46"
   }
 }
