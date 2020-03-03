@@ -135,6 +135,7 @@ type Middleware = ({
 
   - `return` WON'T stop the execution
   - `throw` will STOP the execution
+  - otherwise, the array of `Middleware` will just be executed one by one
 
 - What can you `return`
 
@@ -163,8 +164,13 @@ type Middleware = ({
   - use `passDownObj` from the parameter
   - attach your value to it: `passDownObj.myValue = 123`, `myValue` could be any name
 
-- What will be returned if every middlewares is returning
-  - the last one wins, it's simply because you can replace the current response by `return`ing a new one.
+- What is the rule of thumb when determine what will be returned is the end?
+
+  - the last returned value always wins.
+    - it's simply because you can replace the current response by `return`ing a new one.
+  - Which means:
+    - if every middleware is returning, the last one wins,
+    - if middleware A returns ResponseA, and middleware B is not return anything, ResponseA will be returned (Assume the order is A,B).
 
 ### 5. About the built-in responses
 

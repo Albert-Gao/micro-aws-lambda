@@ -310,3 +310,26 @@ test('the response in the parameter should work', async () => {
   const paramToMiddleware5 = middleware5.mock.calls[0][0];
   expect(paramToMiddleware5.response).toEqual(mockResponse);
 });
+
+test('the response should be returned even when there is a middleware(returns nothing) after', async () => {
+  const mockResponse = { message: 'awesome' };
+
+  const middleware1 = () => mockResponse;
+  const middleware2 = () => {
+    console.log('test');
+  };
+
+  const testHandler = lambdas([middleware1, middleware2]);
+
+  const response = await LambdaTester(testHandler).expectResult();
+
+  expect(response).toEqual({
+    body: JSON.stringify(mockResponse),
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 200,
+  });
+});
