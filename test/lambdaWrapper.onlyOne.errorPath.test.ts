@@ -76,3 +76,43 @@ it('should return success() run even when middlewares is empty', async () => {
     },
   });
 });
+
+test('the response from Promise.reject should be 400 rather than 200 even when no statusCode is set', async () => {
+  const mockResponse = { message: 'awesome' };
+
+  const middleware2 = () => Promise.reject(mockResponse);
+
+  const testHandler = lambdas([middleware2]);
+
+  const response = await LambdaTester(testHandler).expectResult();
+
+  expect(response).toEqual({
+    body: JSON.stringify(mockResponse),
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 400,
+  });
+});
+
+test('statusCode from Promise.reject should be used', async () => {
+  const mockResponse = { statusCode: 401, message: 'awesome' };
+
+  const middleware2 = () => Promise.reject(mockResponse);
+
+  const testHandler = lambdas([middleware2]);
+
+  const response = await LambdaTester(testHandler).expectResult();
+
+  expect(response).toEqual({
+    body: JSON.stringify(mockResponse),
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 401,
+  });
+});

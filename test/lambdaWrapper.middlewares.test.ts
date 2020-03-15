@@ -40,7 +40,7 @@ it('should return an response from beforeHook', async () => {
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     },
-    statusCode: 200,
+    statusCode: 400,
   });
 });
 
@@ -99,7 +99,7 @@ it('should return an Error response from afterHooks', async () => {
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     },
-    statusCode: 200,
+    statusCode: 400,
   });
 });
 
@@ -238,7 +238,7 @@ test('passDownObj should work', async () => {
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     },
-    statusCode: 200,
+    statusCode: 400,
   });
 });
 
@@ -270,7 +270,7 @@ it('should throw error from the last middleware rather than return the response 
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
     },
-    statusCode: 200,
+    statusCode: 400,
   });
 });
 

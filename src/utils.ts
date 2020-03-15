@@ -92,7 +92,8 @@ export const logRequestInfo = (
 };
 
 export const transformResponseToHttpResponse = (
-  response: HttpError | PlainObject | HttpResponse
+  response: HttpError | PlainObject | HttpResponse,
+  shouldAddErrorStatusCode: boolean
 ): HttpResponse => {
   let result = response;
 
@@ -100,10 +101,15 @@ export const transformResponseToHttpResponse = (
     result = response.toHttpResponse();
   } else if (!isHttpResponse(response)) {
     result = buildResponseObject({
-      statusCode: 200,
+      statusCode: shouldAddErrorStatusCode ? 400 : 200,
       body: response,
       shouldStringifyBody: false,
     });
+  }
+
+  const isStatusCodeSet = typeof response.statusCode === 'number';
+  if (isStatusCodeSet) {
+    result.statusCode = response.statusCode as number;
   }
 
   return result as HttpResponse;

@@ -24,6 +24,7 @@ export const lambdas = (
     APIGatewayProxyEvent,
     APIGatewayProxyResult
   > = async (event, context) => {
+    let isErrorResponse = false;
     let response: HttpError | PlainObject | HttpResponse = internalError({
       body: {
         error: 'Response not set',
@@ -37,10 +38,11 @@ export const lambdas = (
         middlewares,
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       response = error;
+      isErrorResponse = true;
     } finally {
-      response = transformResponseToHttpResponse(response);
+      response = transformResponseToHttpResponse(response, isErrorResponse);
 
       if (config?.logRequestInfo) {
         logRequestInfo(event, context);
