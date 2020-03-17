@@ -3,7 +3,6 @@ import {
   Context,
   APIGatewayProxyResult,
 } from 'aws-lambda';
-import { HttpError } from './httpResponse';
 import { createTraceInfo } from './utils';
 
 export interface PlainObject {
@@ -16,7 +15,7 @@ export interface HttpResponse extends Omit<APIGatewayProxyResult, 'body'> {
   };
 }
 
-export type Middleware<PassDownObjType = any> = ({
+export type Middleware<PassDownObjType = any, ReturnValueType = any> = ({
   event,
   context,
   passDownObj,
@@ -25,13 +24,4 @@ export type Middleware<PassDownObjType = any> = ({
   context: Context;
   passDownObj: PassDownObjType;
   readonly response?: any;
-}) =>
-  | string
-  | number
-  | boolean
-  | PlainObject
-  | APIGatewayProxyResult
-  | Promise<PlainObject | APIGatewayProxyResult | void>
-  | HttpError
-  | HttpResponse
-  | void;
+}) => ReturnValueType;

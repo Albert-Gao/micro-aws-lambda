@@ -107,26 +107,16 @@ const handler = lambdas([() => ({ message: 'it works' })]);
 ### 3. The type of the middleware
 
 ```typescript
-type Middleware = ({
+type Middleware<PassDownObjType = any, ReturnValueType = any> = ({
   event,
   context,
   passDownObj,
-  response,
 }: {
   event: APIGatewayProxyEvent; // from @types/aws-lambda
   context: Context; // from @types/aws-lambda
   passDownObj: PlainObject; // for sharing info among middlewares
-  response?: any; // for checking the http response
-}) =>
-  | string
-  | number
-  | boolean
-  | PlainObject
-  | APIGatewayProxyResult
-  | Promise<PlainObject | APIGatewayProxyResult>
-  | HttpError
-  | HttpResponse
-  | void;
+  readonly response?: any; // for checking the http response
+}) => ReturnValueType;
 ```
 
 ### 4. Two minutes master
@@ -164,6 +154,10 @@ type Middleware = ({
   - use `passDownObj` from the parameter
   - attach your value to it: `passDownObj.myValue = 123`, `myValue` could be any name
 
+- Do I have to return something in the middleware
+
+  - No. For example, a validation middleware can only react to the wrong data without returning anything like `if (wrong) {}`
+
 - What is the rule of thumb when determine what will be returned is the end?
 
   - the last returned value always wins.
@@ -176,10 +170,18 @@ type Middleware = ({
 
 There are 2 types of response:
 
+#### Built in
+
 - `httpError()` for `throw`
 - `httpResponse()` for `return`
 
-Each one of them has some shortcuts to use.
+#### Plain JS type
+
+- `return` a plain `object` | `string` | `number` === (200) response
+- `throw` a plain `object` | `string` | `number` === (400) response
+- custom status code by adding `statusCode` property
+
+The `built-in` one has some shortcuts to use.
 
 All parameters are customizable.
 

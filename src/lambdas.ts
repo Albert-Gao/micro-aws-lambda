@@ -19,7 +19,6 @@ export const lambdas = (
     logRequestInfo?: boolean;
   }
 ) => {
-  // @ts-ignore
   const wrapperHandler: Handler<
     APIGatewayProxyEvent,
     APIGatewayProxyResult

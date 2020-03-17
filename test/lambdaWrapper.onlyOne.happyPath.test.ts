@@ -1,10 +1,12 @@
-import { httpResponse, lambdas, success } from '../src';
+import { httpResponse, lambdas, success, Middleware } from '../src';
 const LambdaTester = require('lambda-tester');
 
 it('should return an json response when returning a plain object', async () => {
   const mockResponse = { message: true };
 
-  const testHandler = lambdas([() => mockResponse]);
+  const testMiddleware: Middleware = () => mockResponse;
+
+  const testHandler = lambdas([testMiddleware]);
 
   const response = await LambdaTester(testHandler).expectResult();
 
