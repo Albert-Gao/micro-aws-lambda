@@ -34,6 +34,7 @@
     "trailingComma": "es5"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.47",
     "@types/jest": "^25.1.4",
     "husky": "^4.2.1",
     "lambda-tester": "^4.0.1",
@@ -41,7 +42,5 @@
     "tslib": "^1.11.1",
     "typescript": "^3.8.2"
   },
-  "dependencies": {
-    "@types/aws-lambda": "^8.10.46"
-  }
+  "dependencies": {}
 }
