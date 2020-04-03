@@ -44,7 +44,7 @@
 
 ## Intro
 
-- For Lambda Proxy mode
+- For Lambda Proxy / Http API mode
 - Written in Typescript
 - Zero runtime dependencies
 - Tiny: 7KB after minified
