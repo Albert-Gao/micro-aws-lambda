@@ -111,6 +111,7 @@ type Middleware<PassDownObjType = any, ReturnValueType = any> = ({
   event,
   context,
   passDownObj,
+  response,
 }: {
   event: APIGatewayProxyEvent; // from @types/aws-lambda
   context: Context; // from @types/aws-lambda
