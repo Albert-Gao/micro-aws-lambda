@@ -1,4 +1,5 @@
 import { lambdas, Middleware } from '../src';
+import { success } from '../src/httpResponse';
 const LambdaTester = require('lambda-tester');
 
 it('should return an json response from handler', async () => {
@@ -41,6 +42,31 @@ it('should return an response from beforeHook', async () => {
       'Content-Type': 'application/json',
     },
     statusCode: 400,
+  });
+});
+
+it('should return an response when throwing', async () => {
+  const lambdaMock = jest.fn();
+  const mockResult = { name: 'test' };
+
+  const testHandler = lambdas([
+    () => {
+      throw success({ body: mockResult });
+    },
+    lambdaMock,
+  ]);
+
+  const response = await LambdaTester(testHandler).expectResult();
+
+  expect(lambdaMock).not.toBeCalled();
+  expect(response).toEqual({
+    body: JSON.stringify(mockResult),
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 200,
   });
 });
 
