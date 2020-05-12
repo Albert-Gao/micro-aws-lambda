@@ -50,7 +50,7 @@
 - Tiny: 7KB after minified
 - Rapid middlewares
   - simple reasoning, just running one by one
-  - early exit for just `throw` `httpError()` or anything
+  - early exit with just `throw` `httpError()` or anything
   - pass values among middlewares
 - Return response
   - an object, it will be converted to a Lambda compatible response
