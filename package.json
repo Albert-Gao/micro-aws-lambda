@@ -2,7 +2,7 @@
   "name": "micro-aws-lambda",
   "author": "Albert Gao",
   "module": "dist/micro-aws-lambda.esm.js",
-  "version": "4.0.3",
+  "version": "5.0.0",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

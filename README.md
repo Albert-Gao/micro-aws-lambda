@@ -310,7 +310,11 @@ const validateBodyWithYupSchema = (schema: Schema): Middleware => async ({
 const handler = lambdas([validateBodyWithYupSchema(myYupSchema)]);
 ```
 
-### 8. Migrating from v1
+### 8. Migrating from v4
+
+- `passDownObj` has changed to `shared`
+- `return` **STOPS** the execution now, like `throw`, makes the flow easier to reason about!
+- all `http` helpers can be used under `HttpResponse`, just import this one alone
 
 ## Credits
 
