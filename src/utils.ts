@@ -1,4 +1,4 @@
-import { HttpResponse, Middleware, PlainObject } from './types';
+import { IHttpResponse, Middleware } from './types';
 import { APIGatewayProxyEvent, Context } from 'aws-lambda';
 import {
   HttpError,
@@ -7,34 +7,34 @@ import {
   buildResponseObject,
 } from './httpResponse';
 
-export const funcQueueExecutor = async ({
+export async function funcQueueExecutor<ResponseDataType, Shared>({
   event,
   context,
   middlewares,
 }: {
   event: APIGatewayProxyEvent;
   context: Context;
-  middlewares: Middleware[];
-}) => {
-  let returnValue: PlainObject = {};
+  middlewares: Middleware<ResponseDataType, Shared>[];
+}) {
+  let returnValue = {};
 
-  let passDownObj = {};
+  let shared = {} as Shared;
 
-  for (let i = 0; i <= middlewares.length - 1; i += 1) {
-    const result = (await middlewares[i]({
+  for (let middleware of middlewares) {
+    const result = await middleware({
       event,
       context,
-      passDownObj,
-      response: returnValue,
-    })) as PlainObject;
+      shared,
+    });
 
     if (result != null) {
       returnValue = result;
+      break;
     }
   }
 
   return returnValue;
-};
+}
 
 export const createTraceInfo = (
   event: APIGatewayProxyEvent,
@@ -60,7 +60,7 @@ export const addTraceInfoToResponseBody = (
       response: any;
       debug: ReturnType<typeof createTraceInfo>;
     }
-  | (PlainObject & { debug: ReturnType<typeof createTraceInfo> }) => {
+  | (object & { debug: ReturnType<typeof createTraceInfo> }) => {
   const traceInfo = createTraceInfo(event, context);
 
   if (
@@ -92,9 +92,9 @@ export const logRequestInfo = (
 };
 
 export const transformResponseToHttpResponse = (
-  response: HttpError | PlainObject | HttpResponse,
+  response: HttpError | IHttpResponse,
   shouldAddErrorStatusCode: boolean
-): HttpResponse => {
+): IHttpResponse => {
   let result = response;
 
   if (isHttpError(response)) {
@@ -112,5 +112,5 @@ export const transformResponseToHttpResponse = (
     result.statusCode = response.statusCode as number;
   }
 
-  return result as HttpResponse;
+  return result as IHttpResponse;
 };

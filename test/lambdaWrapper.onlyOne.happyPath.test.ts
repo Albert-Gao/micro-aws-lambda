@@ -1,4 +1,5 @@
-import { httpResponse, lambdas, success, Middleware } from '../src';
+import { httpResponse, success } from '../src/httpResponse';
+import { lambdas, Middleware } from '../src';
 const LambdaTester = require('lambda-tester');
 
 it('should return an json response when returning a plain object', async () => {

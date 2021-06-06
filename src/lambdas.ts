@@ -4,7 +4,7 @@ import {
   addTraceInfoToResponseBody,
   transformResponseToHttpResponse,
 } from './utils';
-import { Middleware, PlainObject, HttpResponse } from './types';
+import { Middleware, IHttpResponse } from './types';
 import { HttpError, buildResponseObject, internalError } from './httpResponse';
 import {
   APIGatewayProxyEvent,
@@ -12,33 +12,33 @@ import {
   Handler,
 } from 'aws-lambda';
 
-export const lambdas = (
-  middlewares: Middleware[] = [],
+export function lambdas<ResponseDataType = any, Shared = any>(
+  middlewares: Middleware<ResponseDataType, Shared>[] = [],
   config?: {
     addTraceInfoToResponse?: boolean;
     logRequestInfo?: boolean;
   }
-) => {
+) {
   const wrapperHandler: Handler<
     APIGatewayProxyEvent,
     APIGatewayProxyResult
   > = async (event, context) => {
     let isErrorResponse = false;
-    let response: HttpError | PlainObject | HttpResponse = internalError({
+    let response: HttpError | IHttpResponse = internalError({
       body: {
         error: 'Response not set',
       },
     });
 
     try {
-      response = await funcQueueExecutor({
+      // @ts-ignore
+      response = await funcQueueExecutor<ResponseDataType, Shared>({
         event,
         context,
         middlewares,
       });
     } catch (error) {
-      console.error(error);
-      response = error;
+      response = error as HttpError;
       isErrorResponse = true;
     } finally {
       response = transformResponseToHttpResponse(response, isErrorResponse);
@@ -63,4 +63,4 @@ export const lambdas = (
   };
 
   return wrapperHandler;
-};
+}

@@ -5,23 +5,21 @@ import {
 } from 'aws-lambda';
 import { createTraceInfo } from './utils';
 
-export interface PlainObject {
-  [key: string]: string | number | boolean | object;
-}
-
-export interface HttpResponse extends Omit<APIGatewayProxyResult, 'body'> {
-  body: PlainObject & {
+export type IHttpResponse<ResponseDataType = any> = Omit<
+  APIGatewayProxyResult,
+  'body'
+> & {
+  body: ResponseDataType & {
     debug?: ReturnType<typeof createTraceInfo>;
   };
-}
+};
 
-export type Middleware<PassDownObjType = any, ReturnValueType = any> = ({
+export type Middleware<ResponseDataType = any, Shared = any> = ({
   event,
   context,
-  passDownObj,
+  shared,
 }: {
   event: APIGatewayProxyEvent;
   context: Context;
-  passDownObj: PassDownObjType;
-  readonly response?: any;
-}) => ReturnValueType;
+  shared: Shared;
+}) => IHttpResponse<ResponseDataType> | ResponseDataType | void | Error;

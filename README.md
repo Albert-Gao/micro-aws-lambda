@@ -50,7 +50,7 @@
 - Tiny: 7KB after minified
 - Rapid middlewares
   - simple reasoning, just running one by one
-  - early exit with just `throw` `httpError()` or anything
+  - early exit with just `throw` `httpError()` or `return` anything
   - pass values among middlewares
 - Return response
   - an object, it will be converted to a Lambda compatible response
@@ -104,29 +104,51 @@ const handler = lambdas([() => ({ message: 'it works' })]);
 // call the API, you will get json response: { message: "it works" }
 ```
 
-### 3. The type of the middleware
+### 3. The usage of Typescript
 
 ```typescript
-type Middleware<PassDownObjType = any, ReturnValueType = any> = ({
+import { lambdas, Middleware, HttpResponse } from 'micro-aws-lambda';
+
+interface Shared {
+  user: { id: string; group: string };
+}
+
+interface Response {
+  isPassing: boolean;
+}
+
+const extractUserFromEvent: Middleware<Response, Shared> = ({
   event,
-  context,
-  passDownObj,
-  response,
-}: {
-  event: APIGatewayProxyEvent; // from @types/aws-lambda
-  context: Context; // from @types/aws-lambda
-  passDownObj: PlainObject; // for sharing info among middlewares
-  readonly response?: any; // for checking the http response
-}) => ReturnValueType;
+  shared,
+}) => {
+  const user = JSON.parse(event.body ?? '');
+
+  if (!user) {
+    throw HttpResponse.badRequest({ body: { isPassing: false } });
+  }
+
+  shared.user = user;
+};
+
+const parseUserData: Middleware<Response, Shared> = ({ shared }) =>
+  shared.user.id === 'bad-user-id'
+    ? HttpResponse.badRequest({ body: { isPassing: false } })
+    : HttpResponse.success({ body: { isPassing: true } });
+
+export const handler = lambdas([extractUserFromEvent, parseUserData]);
 ```
+
+For using with Javascript, you just use it. And later on, if there are any lambda handler needs that `extractUserFromEvent`, you just reuse that piece anywhere you want!
 
 ### 4. Two minutes master
 
 - How to control the flow?
 
-  - `return` WON'T stop the execution
+  - `return` will STOP the execution
   - `throw` will STOP the execution
+  - if nothing is return after invoking the last middleware, an empty object will be returned
   - otherwise, the array of `Middleware` will just be executed one by one
+  - for example, `lambdas([m1, m2])`, if `m1` is returning something, it will be used as the http response and m2 will not be executed.
 
 - What can you `return`
 
@@ -142,30 +164,14 @@ type Middleware<PassDownObjType = any, ReturnValueType = any> = ({
   - an `internalError()`
   - or anything else
 
-- How to check what will be returned as the Http response
-
-  - check the `response` from the parameter
-
-- How to change the `response`
-
-  - you just `return` a new one in your current middleware
-
 - How to pass something down the chain,
 
-  - use `passDownObj` from the parameter
-  - attach your value to it: `passDownObj.myValue = 123`, `myValue` could be any name
+  - use `shared` from the parameter
+  - attach your value to it: `shared.myValue = 123`, `myValue` could be any name
 
 - Do I have to return something in the middleware
 
-  - No. For example, a validation middleware can only react to the wrong data without returning anything like `if (wrong) {}`
-
-- What is the rule of thumb when determine what will be returned is the end?
-
-  - the last returned value always wins.
-    - it's simply because you can replace the current response by `return`ing a new one.
-  - Which means:
-    - if every middleware is returning, the last one wins,
-    - if middleware A returns ResponseA, and middleware B is not return anything, ResponseA will be returned (Assume the order is A,B).
+  - No. For example, a validation middleware can only react to the wrong data without returning anything like `if (wrong) {throw badRequest()}`
 
 ### 5. About the built-in responses
 
@@ -187,10 +193,10 @@ The `built-in` one has some shortcuts to use.
 All parameters are customizable.
 
 ```typescript
-import { httpError, httpResponse } from 'micro-aws-lambda';
+import { HttpResponse } from 'micro-aws-lambda';
 
 // It gives you an instance of HttpError, which extends from Error
-const error = httpError({
+const error = HttpResponse.httpError({
   // default status code is 400 if not set
   statusCode: 401,
   body: {
@@ -202,7 +208,7 @@ const error = httpError({
 });
 
 // It gives you a plain JS object.
-const response = httpResponse({
+const response = HttpResponse.response({
   // default status code is 200 if not set
   statusCode: 200,
   body: {
@@ -230,7 +236,11 @@ Compare to the above methods, the only difference is the shortcuts just sets the
   - `badRequest()`: 400
   - `internalRequest()`: 500
 - `httpResponse`:
+
   - `success()`: 200
+
+- `import {HttpResponse} from 'micro-aws-lambda'`, then `HttpResponse.blahblah`
+- or `import {success,badRequest} from 'micro-aws-lambda'`
 
 ### 6. Config
 
@@ -300,36 +310,7 @@ const validateBodyWithYupSchema = (schema: Schema): Middleware => async ({
 const handler = lambdas([validateBodyWithYupSchema(myYupSchema)]);
 ```
 
-#### 7.2 processing Response
-
-```typescript
-import { badRequest } from 'micro-aws-lambda';
-
-const removeFieldsFromResponse = (fieldsToRemove: string[]): Middleware = ({ response }) => {
-    const newResponse = Object.assign({}, response);
-
-    fieldsToRemove.forEach(field => {
-      if (newResponse[field] != null) {
-        delete newResponse[field]
-      }
-    })
-
-    return newResponse;
-};
-
-const testHandler = lambdas(
-  [
-    () => ({
-      name: 'albert',
-      password: '123qwe',
-      address: 'somewhere on earth'
-    }),
-    removeFieldsFromResponse(['password', 'address'])
-   ],
-);
-
-// response will be  { name: 'albert' }
-```
+### 8. Migrating from v1
 
 ## Credits
 

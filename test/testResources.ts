@@ -7,8 +7,7 @@ export const getMockEvent = (): APIGatewayEvent => ({
   headers: {
     Accept: '*/*',
     'Accept-Encoding': 'gzip, deflate',
-    Authorization:
-      'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1FVTRNak5CUlRoRE56STJPVEZHUWpWRU5ESXhRekk1TVRWRU1EaERPRU0xTTBVMFJURkVNZyJ9.eyJodHRwczovL3RlYW1pbmcuY2xvdWQvand0L2NsYWltcyI6eyJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJ1c2VyIl0sIngtaGFzdXJhLXVzZXItaWQiOiJhdXRoMHw1ZDE5ZTY1NDhjZGE4NjBjY2M2NTIzYzIifSwiaXNzIjoiaHR0cHM6Ly90ZWFtaW5nLWNsb3VkLWRldi5hdS5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NWQxOWU2NTQ4Y2RhODYwY2NjNjUyM2MyIiwiYXVkIjoiU3Y0OG81NVcxTXN6RmdBdEM1M1gzTEF3V2xZamh0OVYiLCJpYXQiOjE1NjI0NjY1NjksImV4cCI6MTU2MjUwMjU2OSwiYXRfaGFzaCI6ImlkOWh1di1VbHFabTBDX19VcU1qWWciLCJub25jZSI6IlhxbVEwcTgueWx5eHpIZmdtSkEyczhwUlBZU2REaTVIIn0.4r-Cl_8kJzP49UQNWEMEf7692SdIlWn0KRtVisZIoqJzkv5nlIiYKbNdClgjC6_7wPSMDiG-K7hfn5vrR4N4h58RL96GkyZKObp7TOZWHGYWqv6j6_oMkLoU_1v_GkY4oDB8w92yXl74MxmXd8y7aV3I1415wyWSFJaYPJaBhF0hCWjU0iGNK_vmw3NhzIo-yhHV9P5JcB2x5B5nUbW_GcqObWAQ1KkWJ_juaPcYJguYLzrjoSA33851iWTIiDUPK_dXDzA_i99xyMySm15gWdI3HSHM6-UOdfo3xgIfSrnNL47ta5eh0hP4Yahi2eza9bIurW3dBhJnpMJ9_f35Kg',
+    Authorization: 'Bearer ..4r----',
     'Cache-Control': 'no-cache',
     'CloudFront-Forwarded-Proto': 'https',
     'CloudFront-Is-Desktop-Viewer': 'true',
@@ -29,9 +28,7 @@ export const getMockEvent = (): APIGatewayEvent => ({
   multiValueHeaders: {
     Accept: ['*/*'],
     'Accept-Encoding': ['gzip, deflate'],
-    Authorization: [
-      'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1FVTRNak5CUlRoRE56STJPVEZHUWpWRU5ESXhRekk1TVRWRU1EaERPRU0xTTBVMFJURkVNZyJ9.eyJodHRwczovL3RlYW1pbmcuY2xvdWQvand0L2NsYWltcyI6eyJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJ1c2VyIiwieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJ1c2VyIl0sIngtaGFzdXJhLXVzZXItaWQiOiJhdXRoMHw1ZDE5ZTY1NDhjZGE4NjBjY2M2NTIzYzIifSwiaXNzIjoiaHR0cHM6Ly90ZWFtaW5nLWNsb3VkLWRldi5hdS5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NWQxOWU2NTQ4Y2RhODYwY2NjNjUyM2MyIiwiYXVkIjoiU3Y0OG81NVcxTXN6RmdBdEM1M1gzTEF3V2xZamh0OVYiLCJpYXQiOjE1NjI0NjY1NjksImV4cCI6MTU2MjUwMjU2OSwiYXRfaGFzaCI6ImlkOWh1di1VbHFabTBDX19VcU1qWWciLCJub25jZSI6IlhxbVEwcTgueWx5eHpIZmdtSkEyczhwUlBZU2REaTVIIn0.4r-Cl_8kJzP49UQNWEMEf7692SdIlWn0KRtVisZIoqJzkv5nlIiYKbNdClgjC6_7wPSMDiG-K7hfn5vrR4N4h58RL96GkyZKObp7TOZWHGYWqv6j6_oMkLoU_1v_GkY4oDB8w92yXl74MxmXd8y7aV3I1415wyWSFJaYPJaBhF0hCWjU0iGNK_vmw3NhzIo-yhHV9P5JcB2x5B5nUbW_GcqObWAQ1KkWJ_juaPcYJguYLzrjoSA33851iWTIiDUPK_dXDzA_i99xyMySm15gWdI3HSHM6-UOdfo3xgIfSrnNL47ta5eh0hP4Yahi2eza9bIurW3dBhJnpMJ9_f35Kg',
-    ],
+    Authorization: ['Bearer ..4r---=-'],
     'Cache-Control': ['no-cache'],
     'CloudFront-Forwarded-Proto': ['https'],
     'CloudFront-Is-Desktop-Viewer': ['true'],
@@ -54,7 +51,7 @@ export const getMockEvent = (): APIGatewayEvent => ({
   pathParameters: null,
   stageVariables: null,
   requestContext: {
-    resourceId: 'elyhmj',
+    resourceId: 'abc',
     authorizer: {
       principalId: 'auth0|5d19e6548cda860ccc6523c2',
       integrationLatency: 1307,
@@ -63,7 +60,7 @@ export const getMockEvent = (): APIGatewayEvent => ({
     },
     resourcePath: '/company',
     httpMethod: 'POST',
-    extendedRequestId: 'ccbq1E5aoAMFh7w=',
+    extendedRequestId: '1E5aoAMFh7w=',
     requestTime: '07/Jul/2019:07:59:01 +0000',
     path: '/dev/company',
     accountId: '049606384301',

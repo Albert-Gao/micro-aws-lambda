@@ -1,10 +1,12 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
-import { PlainObject, HttpResponse } from './types';
+import { IHttpResponse } from './types';
 
-interface HttpResponseParams
-  extends Omit<APIGatewayProxyResult, 'body' | 'statusCode'> {
+interface HttpResponseParams<BodyType> {
   statusCode?: number;
-  body: any;
+  body: BodyType;
+  multiValueHeaders?: APIGatewayProxyResult['multiValueHeaders'] | undefined;
+  isBase64Encoded?: APIGatewayProxyResult['isBase64Encoded'] | undefined;
+  headers?: APIGatewayProxyResult['headers'] | undefined;
 }
 
 const commonHeaders = {
@@ -24,7 +26,7 @@ const getMergedHeaders = (headers?: APIGatewayProxyResult['headers']) =>
 export class HttpError extends Error {
   statusCode: number;
   headers = commonHeaders;
-  body: PlainObject;
+  body: any;
   multiValueHeaders: APIGatewayProxyResult['multiValueHeaders'];
   isBase64Encoded: APIGatewayProxyResult['isBase64Encoded'];
 
@@ -34,7 +36,7 @@ export class HttpError extends Error {
     body,
     multiValueHeaders,
     isBase64Encoded,
-  }: HttpResponseParams) {
+  }: HttpResponseParams<any>) {
     super(JSON.stringify(body));
     Object.setPrototypeOf(this, HttpError.prototype);
 
@@ -55,24 +57,33 @@ export class HttpError extends Error {
   }
 
   public toHttpResponse() {
-    return buildResponseObject({
+    const response: Parameters<typeof buildResponseObject>[0] = {
       statusCode: this.statusCode,
       body: this.body,
       headers: this.headers,
-      multiValueHeaders: this.multiValueHeaders,
-      isBase64Encoded: this.isBase64Encoded,
+
       shouldStringifyBody: false,
-    });
+    };
+
+    if (this.multiValueHeaders) {
+      response.multiValueHeaders = this.multiValueHeaders;
+    }
+
+    if (this.isBase64Encoded) {
+      response.isBase64Encoded = this.isBase64Encoded;
+    }
+
+    return buildResponseObject(response);
   }
 }
 
-export const httpError = ({
+export const httpError = <BodyType>({
   statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: Partial<HttpResponseParams>) =>
+}: Partial<HttpResponseParams<BodyType>>) =>
   new HttpError({
     statusCode: statusCode || 400,
     body,
@@ -81,16 +92,16 @@ export const httpError = ({
     isBase64Encoded,
   });
 
-export function buildResponseObject<T extends true | false>({
+export function buildResponseObject<T extends true | false, BodyType = any>({
   statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
   shouldStringifyBody,
-}: Partial<HttpResponseParams> & {
+}: HttpResponseParams<BodyType> & {
   shouldStringifyBody?: T;
-}): T extends true ? APIGatewayProxyResult : HttpResponse {
+}): T extends true ? APIGatewayProxyResult : IHttpResponse {
   const result: any = {
     statusCode: statusCode || 200,
     body: body,
@@ -114,13 +125,13 @@ export function buildResponseObject<T extends true | false>({
   return result;
 }
 
-export const httpResponse = ({
+export const httpResponse = <BodyType>({
   statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: Partial<HttpResponseParams>): HttpResponse =>
+}: Partial<HttpResponseParams<BodyType>>): IHttpResponse =>
   buildResponseObject({
     statusCode: statusCode || 200,
     body,
@@ -130,13 +141,13 @@ export const httpResponse = ({
     shouldStringifyBody: false,
   });
 
-export const success = ({
+export const success = <BodyType>({
   statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: Partial<HttpResponseParams>): HttpResponse =>
+}: Partial<HttpResponseParams<BodyType>>): IHttpResponse =>
   buildResponseObject({
     statusCode: statusCode || 200,
     headers: getMergedHeaders(headers),
@@ -146,13 +157,13 @@ export const success = ({
     shouldStringifyBody: false,
   });
 
-export const badRequest = ({
+export const badRequest = <BodyType>({
   statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: Partial<HttpResponseParams>) =>
+}: Partial<HttpResponseParams<BodyType>>) =>
   new HttpError({
     statusCode: statusCode || 400,
     body,
@@ -161,13 +172,13 @@ export const badRequest = ({
     isBase64Encoded,
   });
 
-export const internalError = ({
+export const internalError = <BodyType>({
   statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
-}: Partial<HttpResponseParams>) =>
+}: Partial<HttpResponseParams<BodyType>>) =>
   new HttpError({
     statusCode: statusCode || 500,
     body,
@@ -188,3 +199,11 @@ export const isHttpError = (value: any): value is HttpError =>
   value instanceof Error &&
   'toHttpResponse' in value &&
   typeof (value as HttpError).toHttpResponse === 'function';
+
+export const HttpResponse = {
+  httpError,
+  response: httpResponse,
+  success,
+  badRequest,
+  internalError,
+} as const;

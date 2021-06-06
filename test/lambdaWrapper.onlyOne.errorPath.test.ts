@@ -1,6 +1,8 @@
 // TODO: test if we can return non object
 
-import { lambdas, httpError } from '../src';
+import { httpError } from '../src/httpResponse';
+import { lambdas } from '../src/lambdas';
+
 const LambdaTester = require('lambda-tester');
 
 it('should return error when throwing httpError', async () => {
