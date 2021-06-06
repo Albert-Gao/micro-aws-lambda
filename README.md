@@ -47,10 +47,10 @@
 - For Lambda Proxy / Http API mode
 - Written in Typescript
 - Zero runtime dependencies
-- Tiny: 7KB after minified
+- Tiny: 4.7KB after minified
 - Rapid middlewares
   - simple reasoning, just running one by one
-  - early exit with just `throw` `httpError()` or `return` anything
+  - early exit with `throw` or `return` anything
   - pass values among middlewares
 - Return response
   - an object, it will be converted to a Lambda compatible response
@@ -146,100 +146,38 @@ For using with Javascript, you just use it. And later on, if there are any lambd
 
   - `return` will STOP the execution
   - `throw` will STOP the execution
-  - if nothing is return after invoking the last middleware, an empty object will be returned
+  - if nothing is returning after invoking the last middleware, an empty object will be returned
   - otherwise, the array of `Middleware` will just be executed one by one
-  - for example, `lambdas([m1, m2])`, if `m1` is returning something, it will be used as the http response and m2 will not be executed.
+  - who returns the 1st wins, for example, `lambdas([m1, m2])`, if `m1` is returning something, it will be used as the http response and m2 will not be executed.
 
 - What can you `return`
 
-  - a `httpResponse()`
-  - or a `success()` (just a `httpResponse()` with status code set to 200, you can still change it)
-  - or an plain object / string / number (which will be auto-wrapped with `success()` in the end)
-  - Any value `return`ed will be passed to the next middleware as the `response` parameter
+  - a `HttpResponse.response()`
+  - or a `HttpResponse.success()` (just a `HttpResponse.response()` with status code set to 200, you can still change it)
+  - or an plain object / string / number (which will be auto-wrapped with `HttpResponse.success()` in the end)
 
-- What can you `throw`
+* What can you `throw`
 
-  - an `httpError()`
-  - an `badRequest()`
-  - an `internalError()`
+  - an `HttpResponse.error()`
+  - an `HttpResponse.badRequest()`
+  - an `HttpResponse.internalError()`
   - or anything else
 
-- How to pass something down the chain,
+* How to pass something down the chain,
 
   - use `shared` from the parameter
   - attach your value to it: `shared.myValue = 123`, `myValue` could be any name
 
-- Do I have to return something in the middleware
+* Do I have to return something in the middleware
 
   - No. For example, a validation middleware can only react to the wrong data without returning anything like `if (wrong) {throw badRequest()}`
 
-### 5. About the built-in responses
-
-There are 2 types of response:
-
-#### Built in
-
-- `httpError()` for `throw`
-- `httpResponse()` for `return`
-
-#### Plain JS type
+### 5. Actually, you can throw or return anything
 
 - `return` a plain `object` | `string` | `number` === (200) response
 - `throw` a plain `object` | `string` | `number` === (400) response
 - custom status code by adding `statusCode` property
-
-The `built-in` one has some shortcuts to use.
-
-All parameters are customizable.
-
-```typescript
-import { HttpResponse } from 'micro-aws-lambda';
-
-// It gives you an instance of HttpError, which extends from Error
-const error = HttpResponse.httpError({
-  // default status code is 400 if not set
-  statusCode: 401,
-  body: {
-    message: 'test',
-  },
-  headers: {
-    'x-http-header': 'fake-header',
-  },
-});
-
-// It gives you a plain JS object.
-const response = HttpResponse.response({
-  // default status code is 200 if not set
-  statusCode: 200,
-  body: {
-    message: 'test',
-  },
-  headers: {
-    'x-http-header': 'fake-header',
-  },
-});
-```
-
-The commons headers are:
-
-- 'Access-Control-Allow-Origin': '\*',
-- 'Access-Control-Allow-Credentials': true,
-- 'Content-Type': 'application/json',
-
-Supports `multiValueHeaders` and `isBase64Encoded` in case you need them.
-
-#### 5.1. Shortcuts
-
-Compare to the above methods, the only difference is the shortcuts just sets the status code, you can still modify them if you want.
-
-- `httpError`:
-  - `badRequest()`: 400
-  - `internalRequest()`: 500
-- `httpResponse`:
-
-  - `success()`: 200
-
-- `import {HttpResponse} from 'micro-aws-lambda'`, then `HttpResponse.blahblah`
+- Or use our built-in shortcut, `import {HttpResponse} from 'micro-aws-lambda'`, then `HttpResponse.success({body:{message:'wow'}})`
 - or `import {success,badRequest} from 'micro-aws-lambda'`
 
 ### 6. Config
@@ -273,46 +211,9 @@ It will `console.log`:
 - `Aws-Api-Gateway-Request-Id`
 - `Identity-Source-Ip`
 
-### 7. Examples
+### 7. Migrating from v4
 
-#### 7.1 Validation
-
-In the following case, if the request name is 'albert', only `validateRequest` will be called.
-
-```typescript
-import { badRequest, Middleware } from 'micro-aws-lambda';
-
-const validateRequest: Middleware = ({ event }) => {
-  if (event.request.body.name === 'albert') {
-    throw badRequest({
-      message: 'bad user, bye bye',
-    });
-  }
-};
-
-// it will return a 400 error { message: 'bad user, bye bye' }
-```
-
-Or if you like me, you can write a simple validating middleware with the `yup` schema, you can then reuse from the client side.
-
-```typescript
-import { Schema } from 'yup';
-import { lambdas, Middleware, badRequest } from 'micro-aws-lambda';
-
-const validateBodyWithYupSchema = (schema: Schema): Middleware => async ({
-  event,
-}) => {
-  if (!schema.isValid(event.body)) {
-    throw badRequest('bad request');
-  }
-};
-
-const handler = lambdas([validateBodyWithYupSchema(myYupSchema)]);
-```
-
-### 8. Migrating from v4
-
-- `passDownObj` has changed to `shared`
+- `passDownObj` has renamed to `shared`
 - `return` **STOPS** the execution now, like `throw`, makes the flow easier to reason about!
 - all `http` helpers can be used under `HttpResponse`, just import this one alone
 

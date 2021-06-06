@@ -201,7 +201,7 @@ export const isHttpError = (value: any): value is HttpError =>
   typeof (value as HttpError).toHttpResponse === 'function';
 
 export const HttpResponse = {
-  httpError,
+  error: httpError,
   response: httpResponse,
   success,
   badRequest,

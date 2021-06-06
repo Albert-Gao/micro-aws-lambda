@@ -22,4 +22,11 @@ export type Middleware<ResponseDataType = any, Shared = any> = ({
   event: APIGatewayProxyEvent;
   context: Context;
   shared: Shared;
-}) => IHttpResponse<ResponseDataType> | ResponseDataType | void | Error;
+}) =>
+  | IHttpResponse<ResponseDataType>
+  | Promise<ResponseDataType | null | undefined | void | Error>
+  | ResponseDataType
+  | null
+  | undefined
+  | void
+  | Error;
