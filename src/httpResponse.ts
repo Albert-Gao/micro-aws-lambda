@@ -1,5 +1,5 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
-import { IHttpResponse } from './types';
+import { IHttpResponseLegacy as IHttpResponse } from './types';
 
 interface HttpResponseParams<BodyType> {
   statusCode?: number;

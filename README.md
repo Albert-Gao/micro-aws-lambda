@@ -117,7 +117,7 @@ interface Response {
   isPassing: boolean;
 }
 
-const extractUserFromEvent: Middleware<Response, Shared> = ({
+const extractUserFromEvent: Middleware<Shared, Response> = ({
   event,
   shared,
 }) => {
@@ -130,7 +130,7 @@ const extractUserFromEvent: Middleware<Response, Shared> = ({
   shared.user = user;
 };
 
-const parseUserData: Middleware<Response, Shared> = ({ shared }) =>
+const parseUserData: Middleware<Shared, Response> = ({ shared }) =>
   shared.user.id === 'bad-user-id'
     ? HttpResponse.badRequest({ body: { isPassing: false } })
     : HttpResponse.success({ body: { isPassing: true } });
@@ -138,7 +138,9 @@ const parseUserData: Middleware<Response, Shared> = ({ shared }) =>
 export const handler = lambdas([extractUserFromEvent, parseUserData]);
 ```
 
-For using with Javascript, you just use it. And later on, if there are any lambda handler needs that `extractUserFromEvent`, you just reuse that piece anywhere you want!
+And later on, if there are any lambda handler needs that `extractUserFromEvent`, you just reuse that piece anywhere you want!
+
+> the default `Middleware` is for `APIGatewayProxyHandlerV2` from `@types/aws-lambda`. If you are using the Lambda Proxy mode, please import `MiddlewareLegacy`, otherwise,
 
 ### 4. Two minutes master
 

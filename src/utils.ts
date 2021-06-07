@@ -1,5 +1,9 @@
 import { IHttpResponse, Middleware } from './types';
-import { APIGatewayProxyEvent, Context } from 'aws-lambda';
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyEventV2,
+  Context,
+} from 'aws-lambda';
 import {
   HttpError,
   isHttpError,
@@ -7,14 +11,14 @@ import {
   buildResponseObject,
 } from './httpResponse';
 
-export async function funcQueueExecutor<ResponseDataType, Shared>({
+export async function funcQueueExecutor<Shared, ResponseDataType>({
   event,
   context,
   middlewares,
 }: {
-  event: APIGatewayProxyEvent;
+  event: APIGatewayProxyEvent | APIGatewayProxyEventV2;
   context: Context;
-  middlewares: Middleware<ResponseDataType, Shared>[];
+  middlewares: Middleware<Shared, ResponseDataType>[];
 }) {
   let returnValue = {};
 
@@ -22,6 +26,7 @@ export async function funcQueueExecutor<ResponseDataType, Shared>({
 
   for (let middleware of middlewares) {
     const result = await middleware({
+      // @ts-ignore
       event,
       context,
       shared,
@@ -107,8 +112,10 @@ export const transformResponseToHttpResponse = (
     });
   }
 
+  // @ts-ignore
   const isStatusCodeSet = typeof response.statusCode === 'number';
   if (isStatusCodeSet) {
+    // @ts-ignore
     result.statusCode = response.statusCode as number;
   }
 
