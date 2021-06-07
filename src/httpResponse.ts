@@ -168,6 +168,32 @@ export const badRequest = <BodyType>(
     body: httpBody,
   });
 
+export const unauthorized = <BodyType>(
+  httpBody: BodyType,
+  {
+    statusCode,
+    headers,
+  }: { statusCode?: number; headers?: APIGatewayProxyResult['headers'] } = {}
+) =>
+  new HttpError({
+    statusCode: statusCode || 401,
+    headers,
+    body: httpBody,
+  });
+
+export const notFound = <BodyType>(
+  httpBody: BodyType,
+  {
+    statusCode,
+    headers,
+  }: { statusCode?: number; headers?: APIGatewayProxyResult['headers'] } = {}
+) =>
+  new HttpError({
+    statusCode: statusCode || 404,
+    headers,
+    body: httpBody,
+  });
+
 export const internalError = <BodyType>(
   httpBody: BodyType,
   {
@@ -200,4 +226,6 @@ export const HttpResponse = {
   success,
   badRequest,
   internalError,
+  unauthorized,
+  notFound,
 } as const;

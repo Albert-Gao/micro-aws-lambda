@@ -6,6 +6,8 @@ import {
   success,
   internalError,
   httpResponse,
+  notFound,
+  unauthorized,
 } from '../src/httpResponse';
 
 test('badRequest() should return an HTTPError', () => {
@@ -16,6 +18,40 @@ test('badRequest() should return an HTTPError', () => {
   expect(result).toBeInstanceOf(HttpError);
   expect(result).toBeInstanceOf(Error);
   expect(result.statusCode).toEqual(400);
+  expect(result.body).toEqual(mockBody);
+  expect(result.headers).toEqual({
+    'Access-Control-Allow-Credentials': true,
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json',
+  });
+  expect(result.multiValueHeaders).not.toBeDefined();
+});
+
+test('notFound() should return an HTTPError', () => {
+  const mockBody = { message: 'test' };
+
+  const result = notFound(mockBody);
+
+  expect(result).toBeInstanceOf(HttpError);
+  expect(result).toBeInstanceOf(Error);
+  expect(result.statusCode).toEqual(404);
+  expect(result.body).toEqual(mockBody);
+  expect(result.headers).toEqual({
+    'Access-Control-Allow-Credentials': true,
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json',
+  });
+  expect(result.multiValueHeaders).not.toBeDefined();
+});
+
+test('unauthorized() should return an HTTPError', () => {
+  const mockBody = { message: 'test' };
+
+  const result = unauthorized(mockBody);
+
+  expect(result).toBeInstanceOf(HttpError);
+  expect(result).toBeInstanceOf(Error);
+  expect(result.statusCode).toEqual(401);
   expect(result.body).toEqual(mockBody);
   expect(result.headers).toEqual({
     'Access-Control-Allow-Credentials': true,

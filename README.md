@@ -166,6 +166,8 @@ And later on, if there are any lambda handler needs that `extractUserFromEvent`,
   - an `HttpResponse.error()`
   - an `HttpResponse.badRequest()`
   - an `HttpResponse.internalError()`
+  - an `HttpResponse.unauthorized()`
+  - an `HttpResponse.notFound()`
   - or anything else
 
 * How to pass something down the chain,
