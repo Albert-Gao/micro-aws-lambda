@@ -26,7 +26,7 @@ it('should return an json response when using success()', async () => {
   const mockResponse = { message: true };
 
   const testHandler = lambdas([
-    () => success({ statusCode: 203, body: mockResponse }),
+    () => success(mockResponse, { statusCode: 203 }),
   ]);
 
   const response = await LambdaTester(testHandler).expectResult();

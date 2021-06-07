@@ -11,7 +11,7 @@ import {
 test('badRequest() should return an HTTPError', () => {
   const mockBody = { message: 'test' };
 
-  const result = badRequest({ body: mockBody });
+  const result = badRequest(mockBody);
 
   expect(result).toBeInstanceOf(HttpError);
   expect(result).toBeInstanceOf(Error);

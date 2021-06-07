@@ -117,23 +117,26 @@ interface Response {
   isPassing: boolean;
 }
 
-const extractUserFromEvent: Middleware<Shared, Response> = ({
+const extractUserFromEvent: Middleware<Shared, Response> = async ({
   event,
   shared,
 }) => {
-  const user = JSON.parse(event.body ?? '');
+  const user = JSON.parse(event.body);
 
   if (!user) {
-    throw HttpResponse.badRequest({ body: { isPassing: false } });
+    throw HttpResponse.badRequest({ isPassing: false });
   }
 
   shared.user = user;
 };
 
-const parseUserData: Middleware<Shared, Response> = ({ shared }) =>
-  shared.user.id === 'bad-user-id'
-    ? HttpResponse.badRequest({ body: { isPassing: false } })
-    : HttpResponse.success({ body: { isPassing: true } });
+const parseUserData: Middleware<Shared, Response> = ({ shared }) => {
+  if (shared.user.id === 'bad-user-id') {
+    throw HttpResponse.badRequest({ isPassing: false });
+  }
+
+  return HttpResponse.success({ isPassing: true });
+};
 
 export const handler = lambdas([extractUserFromEvent, parseUserData]);
 ```

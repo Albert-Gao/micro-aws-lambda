@@ -53,7 +53,7 @@ it('should return an response when throwing', async () => {
 
   const testHandler = lambdas([
     () => {
-      throw success({ body: mockResult });
+      throw success(mockResult);
     },
     lambdaMock,
   ]);
