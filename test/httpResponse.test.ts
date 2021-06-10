@@ -125,6 +125,39 @@ test('httpError should set default statusCode to 400', () => {
   expect(err.statusCode).toBe(400);
 });
 
+test('httpError should honor multiValueHeaders', () => {
+  const err = httpError({
+    body: { message: true },
+    multiValueHeaders: { vales: [1, 2, 3] },
+  });
+  expect(err.multiValueHeaders).toStrictEqual({ vales: [1, 2, 3] });
+});
+
+test('httpError should honor isBased64Encoded', () => {
+  const err = httpError({
+    body: { message: true },
+    isBase64Encoded: true,
+  });
+  expect(err.isBase64Encoded).toStrictEqual(true);
+});
+
+test('httpError.toHttpResponse', () => {
+  const err = httpError({
+    body: { message: true },
+    isBase64Encoded: true,
+  });
+  expect(err.toHttpResponse()).toStrictEqual({
+    body: { message: true },
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    isBase64Encoded: true,
+    statusCode: 400,
+  });
+});
+
 test('buildResponseObject should set default statusCode to 200', () => {
   const res = buildResponseObject({ body: { message: true } });
   expect(res.statusCode).toBe(200);
