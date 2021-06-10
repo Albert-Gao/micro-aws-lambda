@@ -141,6 +141,19 @@ export const httpResponse = <BodyType>({
     shouldStringifyBody: false,
   });
 
+export const isHttpResponse = (
+  response: any
+): response is APIGatewayProxyResult =>
+  typeof response === 'object' &&
+  'statusCode' in response &&
+  'headers' in response &&
+  'body' in response;
+
+export const isHttpError = (value: any): value is HttpError =>
+  value instanceof Error &&
+  'toHttpResponse' in value &&
+  typeof (value as HttpError).toHttpResponse === 'function';
+
 export const success = <BodyType>(
   httpBody: BodyType,
   {
@@ -155,77 +168,66 @@ export const success = <BodyType>(
     shouldStringifyBody: false,
   });
 
-export const badRequest = <BodyType>(
-  httpBody: BodyType,
-  {
-    statusCode,
-    headers,
-  }: { statusCode?: number; headers?: APIGatewayProxyResult['headers'] } = {}
-) =>
-  new HttpError({
-    statusCode: statusCode || 400,
-    headers,
-    body: httpBody,
-  });
+function generateErrorResponseWrapper(defaultStatusCode: number) {
+  const helper = <BodyType>(
+    httpBody: BodyType,
+    {
+      statusCode = defaultStatusCode,
+      headers,
+    }: { statusCode?: number; headers?: APIGatewayProxyResult['headers'] } = {}
+  ) =>
+    new HttpError({
+      statusCode: statusCode,
+      headers,
+      body: httpBody,
+    });
 
-export const unauthorized = <BodyType>(
-  httpBody: BodyType,
-  {
-    statusCode,
-    headers,
-  }: { statusCode?: number; headers?: APIGatewayProxyResult['headers'] } = {}
-) =>
-  new HttpError({
-    statusCode: statusCode || 401,
-    headers,
-    body: httpBody,
-  });
-
-export const notFound = <BodyType>(
-  httpBody: BodyType,
-  {
-    statusCode,
-    headers,
-  }: { statusCode?: number; headers?: APIGatewayProxyResult['headers'] } = {}
-) =>
-  new HttpError({
-    statusCode: statusCode || 404,
-    headers,
-    body: httpBody,
-  });
-
-export const internalError = <BodyType>(
-  httpBody: BodyType,
-  {
-    statusCode,
-    headers,
-  }: { statusCode?: number; headers?: APIGatewayProxyResult['headers'] } = {}
-) =>
-  new HttpError({
-    statusCode: statusCode || 500,
-    headers,
-    body: httpBody,
-  });
-
-export const isHttpResponse = (
-  response: any
-): response is APIGatewayProxyResult =>
-  typeof response === 'object' &&
-  'statusCode' in response &&
-  'headers' in response &&
-  'body' in response;
-
-export const isHttpError = (value: any): value is HttpError =>
-  value instanceof Error &&
-  'toHttpResponse' in value &&
-  typeof (value as HttpError).toHttpResponse === 'function';
+  return helper;
+}
 
 export const HttpResponse = {
   error: httpError,
   response: httpResponse,
+
+  /** StatusCode 200 */
   success,
-  badRequest,
-  internalError,
-  unauthorized,
-  notFound,
+
+  /** StatusCode 400 */
+  badRequest: generateErrorResponseWrapper(400),
+
+  /** StatusCode 401 */
+  unauthorized: generateErrorResponseWrapper(401),
+
+  /** StatusCode 403 */
+  forbidden: generateErrorResponseWrapper(403),
+
+  /** StatusCode 404 */
+  notFound: generateErrorResponseWrapper(404),
+
+  /** StatusCode 405 */
+  methodNotAllowed: generateErrorResponseWrapper(405),
+
+  /** StatusCode 406 */
+  notAcceptable: generateErrorResponseWrapper(406),
+
+  /** StatusCode 409 */
+  conflict: generateErrorResponseWrapper(409),
+
+  /** StatusCode 500 */
+  internalError: generateErrorResponseWrapper(500),
+
+  /** StatusCode 501 */
+  notImplemented: generateErrorResponseWrapper(501),
+
+  /** StatusCode 502 */
+  badGateway: generateErrorResponseWrapper(502),
+
+  /** StatusCode 503 */
+  serviceUnavailable: generateErrorResponseWrapper(503),
+
+  /** StatusCode 504 */
+  gatewayTimeout: generateErrorResponseWrapper(504),
+
+  /** StatusCode 511 */
+  networkAuthenticationRequire: generateErrorResponseWrapper(511),
 } as const;

@@ -1,14 +1,13 @@
 import {
-  badRequest,
   buildResponseObject,
   HttpError,
   httpError,
   success,
-  internalError,
   httpResponse,
-  notFound,
-  unauthorized,
+  HttpResponse,
 } from '../src/httpResponse';
+
+const { badRequest, internalError, notFound, unauthorized } = HttpResponse;
 
 test('badRequest() should return an HTTPError', () => {
   const mockBody = { message: 'test' };
@@ -183,8 +182,18 @@ test('buildResponseObject should isBase64Encoded', () => {
 });
 
 test('badRequest should set default statusCode to 400', () => {
-  const res = badRequest({ body: { message: true } });
+  const res = badRequest({ message: true });
   expect(res.statusCode).toBe(400);
+});
+
+test('badRequest should set default statusCode to custom one', () => {
+  const res = badRequest({ message: true }, { statusCode: 500 });
+  expect(res.statusCode).toBe(500);
+});
+
+test('badRequest should not change the body', () => {
+  const res = badRequest({ message: true }, { statusCode: 500 });
+  expect(res.body).toStrictEqual({ message: true });
 });
 
 test('internalError should set default statusCode to 500', () => {

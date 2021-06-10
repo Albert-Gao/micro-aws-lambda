@@ -5,12 +5,14 @@ import {
   transformResponseToHttpResponse,
 } from './utils';
 import { Middleware, IHttpResponse } from './types';
-import { HttpError, buildResponseObject, internalError } from './httpResponse';
+import { HttpResponse, HttpError, buildResponseObject } from './httpResponse';
 import {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
   Handler,
 } from 'aws-lambda';
+
+const { internalError } = HttpResponse;
 
 export function lambdas<ResponseDataType = any, Shared = any>(
   middlewares: Middleware<ResponseDataType, Shared>[] = [],

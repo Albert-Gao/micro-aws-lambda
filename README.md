@@ -163,19 +163,30 @@ And later on, if there are any lambda handler needs that `extractUserFromEvent`,
 
 * What can you `throw`
 
-  - an `HttpResponse.error()`
-  - an `HttpResponse.badRequest()`
-  - an `HttpResponse.internalError()`
-  - an `HttpResponse.unauthorized()`
-  - an `HttpResponse.notFound()`
+  - `HttpResponse.error()`
+  - `HttpResponse.badRequest()`
+  - `HttpResponse.unauthorized()`
+  - `HttpResponse.forbidden()`
+  - `HttpResponse.notFound()`
+  - `HttpResponse.methodNotAllowed()`
+  - `HttpResponse.notAcceptable()`
+  - `HttpResponse.conflict()`
+  - `HttpResponse.internalError()`
+  - `HttpResponse.notImplemented()`
+  - `HttpResponse.badGateway()`
+  - `HttpResponse.serviceUnavailable()`
+  - `HttpResponse.gatewayTimeout()`
+  - `HttpResponse.networkAuthenticationRequire()`
   - or anything else
 
-* How to pass something down the chain,
+> Hover over the function will get a tooltip of the status code for this helper, also, you can pass a 2nd parameter to change the statusCode or headers as well
+
+- How to pass something down the chain,
 
   - use `shared` from the parameter
   - attach your value to it: `shared.myValue = 123`, `myValue` could be any name
 
-* Do I have to return something in the middleware
+- Do I have to return something in the middleware
 
   - No. For example, a validation middleware can only react to the wrong data without returning anything like `if (wrong) {throw badRequest()}`
 
@@ -185,7 +196,6 @@ And later on, if there are any lambda handler needs that `extractUserFromEvent`,
 - `throw` a plain `object` | `string` | `number` === (400) response
 - custom status code by adding `statusCode` property
 - Or use our built-in shortcut, `import {HttpResponse} from 'micro-aws-lambda'`, then `HttpResponse.success({body:{message:'wow'}})`
-- or `import {success,badRequest} from 'micro-aws-lambda'`
 
 ### 6. Config
 
