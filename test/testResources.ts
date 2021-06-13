@@ -1,6 +1,7 @@
 import { APIGatewayEvent, Context } from 'aws-lambda';
 
 export const getMockEvent = (): APIGatewayEvent => ({
+  version: '1.0',
   resource: '/company',
   path: '/company',
   httpMethod: 'POST',

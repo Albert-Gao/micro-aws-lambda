@@ -41,20 +41,36 @@ export async function funcQueueExecutor<Shared, ResponseDataType>({
   return returnValue;
 }
 
-export const createTraceInfo = (
-  event: APIGatewayProxyEvent,
-  context: Context
-) => ({
-  endpoint: event.requestContext.domainName ?? '' + event.requestContext.path,
-  requestBody: event.body || '',
-  requestMethod: event.requestContext.httpMethod,
+export const createTraceInfo = (event: any, context: Context) => {
+  // @ts-ignore
+  if (event.version === '2.0') {
+    const typedEvent = event as APIGatewayProxyEventV2;
 
-  country: event.headers['CloudFront-Viewer-Country'] ?? '',
-  lambdaRequestId: context.awsRequestId,
-  logStreamName: context.logStreamName,
-  logGroupName: context.logGroupName,
-  apiGatewayId: event.requestContext.requestId,
-});
+    return {
+      endpoint: typedEvent.requestContext.domainName,
+      routeKey: typedEvent.requestContext.routeKey,
+      requestBody: typedEvent.body || '',
+      requestMethod: typedEvent.requestContext.http.method,
+      requestId: event.requestContext.requestId,
+    };
+  } else {
+    const typedEvent = event as APIGatewayProxyEvent;
+
+    return {
+      endpoint:
+        typedEvent.requestContext.domainName ??
+        '' + typedEvent.requestContext.path,
+      requestBody: typedEvent.body || '',
+      requestMethod: typedEvent.requestContext.httpMethod,
+
+      country: typedEvent.headers['CloudFront-Viewer-Country'] ?? '',
+      lambdaRequestId: context.awsRequestId,
+      logStreamName: context.logStreamName,
+      logGroupName: context.logGroupName,
+      apiGatewayId: typedEvent.requestContext.requestId,
+    };
+  }
+};
 
 export const addTraceInfoToResponseBody = (
   responseBody: string | number | boolean | any[] | object,
@@ -87,11 +103,10 @@ export const addTraceInfoToResponseBody = (
 };
 
 export const logRequestInfo = (
-  event: APIGatewayProxyEvent,
+  event: APIGatewayProxyEvent | APIGatewayProxyEventV2,
   context: Context
 ) => {
   console.log('Aws-Api-Gateway-Request-Id: ', event.requestContext.requestId);
-  console.log('Identity-Source-Ip: ', event.requestContext.identity.sourceIp);
   console.log('EVENT: ', event);
   console.log('CONTEXT: ', context);
 };
@@ -108,7 +123,6 @@ export const transformResponseToHttpResponse = (
     result = buildResponseObject({
       statusCode: shouldAddErrorStatusCode ? 400 : 200,
       body: response,
-      shouldStringifyBody: false,
     });
   }
 

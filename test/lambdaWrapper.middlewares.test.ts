@@ -22,6 +22,26 @@ it('should return the 1st response from handler', async () => {
   });
 });
 
+it('should return array from handler', async () => {
+  const lambdaMock = jest.fn();
+  const firstResponse = [1, 2, 3];
+
+  const testHandler = lambdas([() => firstResponse, lambdaMock]);
+
+  const response = await LambdaTester(testHandler).expectResult();
+
+  expect(lambdaMock).not.toBeCalled();
+  expect(response).toEqual({
+    body: JSON.stringify(firstResponse),
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 200,
+  });
+});
+
 it('should return the error being thrown from the 1st middleware', async () => {
   const lambdaMock = jest.fn();
   const mockError = { name: 'test' };

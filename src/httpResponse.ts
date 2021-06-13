@@ -61,8 +61,6 @@ export class HttpError extends Error {
       statusCode: this.statusCode,
       body: this.body,
       headers: this.headers,
-
-      shouldStringifyBody: false,
     };
 
     if (this.multiValueHeaders) {
@@ -92,16 +90,13 @@ export const httpError = <BodyType>({
     isBase64Encoded,
   });
 
-export function buildResponseObject<T extends true | false, BodyType = any>({
+export function buildResponseObject<BodyType = any>({
   statusCode,
   body,
   headers,
   multiValueHeaders,
   isBase64Encoded,
-  shouldStringifyBody,
-}: HttpResponseParams<BodyType> & {
-  shouldStringifyBody?: T;
-}): T extends true ? APIGatewayProxyResult : IHttpResponse {
+}: HttpResponseParams<BodyType>): IHttpResponse {
   const result: any = {
     statusCode: statusCode || 200,
     body: body,
@@ -114,12 +109,6 @@ export function buildResponseObject<T extends true | false, BodyType = any>({
 
   if (isBase64Encoded) {
     result.isBase64Encoded = isBase64Encoded;
-  }
-
-  if (shouldStringifyBody) {
-    if (typeof result.body === 'object' || Array.isArray(result.body)) {
-      result.body = JSON.stringify(result.body);
-    }
   }
 
   return result;
@@ -138,7 +127,6 @@ export const httpResponse = <BodyType>({
     headers,
     multiValueHeaders,
     isBase64Encoded,
-    shouldStringifyBody: false,
   });
 
 export const isHttpResponse = (
@@ -165,7 +153,6 @@ export const success = <BodyType>(
     statusCode: statusCode || 200,
     headers,
     body: httpBody,
-    shouldStringifyBody: false,
   });
 
 function generateErrorResponseWrapper(defaultStatusCode: number) {

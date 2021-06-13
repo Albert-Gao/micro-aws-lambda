@@ -149,8 +149,9 @@ And later on, if there are any lambda handler needs that `extractUserFromEvent`,
 
 - How to control the flow?
 
-  - `return` will STOP the execution
+  - `return` anything that is not `null` or `undefined` will STOP the execution
   - `throw` will STOP the execution
+  - just `return` / `return null` / `return undefined` will NOT stop the execution, unless it's the last middleware
   - if nothing is returning after invoking the last middleware, an empty object will be returned
   - otherwise, the array of `Middleware` will just be executed one by one
   - who returns the 1st wins, for example, `lambdas([m1, m2])`, if `m1` is returning something, it will be used as the http response and m2 will not be executed.

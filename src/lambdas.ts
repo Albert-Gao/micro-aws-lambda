@@ -57,10 +57,15 @@ export function lambdas<ResponseDataType = any, Shared = any>(
         );
       }
 
-      return buildResponseObject({
+      const result = buildResponseObject({
         ...response,
-        shouldStringifyBody: true,
       });
+
+      if (typeof result.body === 'object') {
+        result.body = JSON.stringify(result.body);
+      }
+
+      return result;
     }
   };
 

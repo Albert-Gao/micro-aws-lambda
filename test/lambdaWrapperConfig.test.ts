@@ -76,20 +76,15 @@ it('should log when config.logRequestInfo sets to true', async () => {
     .expectResult();
 
   expect(logRequestInfoMock).toBeCalledTimes(1);
-  expect(consoleLogMock).toBeCalledTimes(4);
+  expect(consoleLogMock).toBeCalledTimes(3);
   expect(consoleLogMock).toHaveBeenNthCalledWith(
     1,
     'Aws-Api-Gateway-Request-Id: ',
     mockEvent.requestContext.requestId
   );
+  expect(consoleLogMock).toHaveBeenNthCalledWith(2, 'EVENT: ', mockEvent);
   expect(consoleLogMock).toHaveBeenNthCalledWith(
-    2,
-    'Identity-Source-Ip: ',
-    mockEvent.requestContext?.identity?.sourceIp
-  );
-  expect(consoleLogMock).toHaveBeenNthCalledWith(3, 'EVENT: ', mockEvent);
-  expect(consoleLogMock).toHaveBeenNthCalledWith(
-    4,
+    3,
     'CONTEXT: ',
     expect.objectContaining(mockContext)
   );
