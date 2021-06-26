@@ -2,7 +2,7 @@
   "name": "micro-aws-lambda",
   "author": "Albert Gao",
   "module": "dist/micro-aws-lambda.esm.js",
-  "version": "5.2.2",
+  "version": "5.3.2",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -29,6 +29,7 @@
     "trailingComma": "es5"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.14.5",
     "@types/jest": "^26.0.23",
     "lambda-tester": "^4.0.1",
     "tsdx": "^0.14.1",

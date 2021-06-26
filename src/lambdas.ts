@@ -5,7 +5,12 @@ import {
   transformResponseToHttpResponse,
 } from './utils';
 import { Middleware, IHttpResponse } from './types';
-import { HttpResponse, HttpError, buildResponseObject } from './httpResponse';
+import {
+  HttpResponse,
+  HttpError,
+  buildResponseObject,
+  httpError,
+} from './httpResponse';
 import {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
@@ -40,9 +45,24 @@ export function lambdas<ResponseDataType = any, Shared = any>(
         middlewares,
       });
     } catch (error) {
+      console.log('error', error);
       response = error as HttpError;
       isErrorResponse = true;
     } finally {
+      const isJsError =
+        response instanceof Error && typeof response.statusCode != 'number';
+      if (isJsError) {
+        return httpError({
+          statusCode: 500,
+          body: JSON.stringify({
+            // @ts-ignore
+            errorName: response.name,
+            // @ts-ignore
+            message: response.message,
+          }),
+        });
+      }
+
       response = transformResponseToHttpResponse(response, isErrorResponse);
 
       if (config?.logRequestInfo) {

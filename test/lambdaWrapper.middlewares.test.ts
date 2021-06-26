@@ -117,6 +117,30 @@ it('should return an Error response from afterHooks', async () => {
   });
 });
 
+it('should return JS Error as response', async () => {
+  const lambdaMock = jest.fn();
+
+  const testHandler = lambdas([
+    lambdaMock,
+    () => {
+      throw new Error('sigh');
+    },
+  ]);
+
+  const response = await LambdaTester(testHandler).expectResult();
+
+  expect(lambdaMock).toBeCalledTimes(1);
+  expect(response).toMatchObject({
+    body: JSON.stringify({ errorName: 'Error', message: 'sigh' }),
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 500,
+  });
+});
+
 it('should return a normal response from afterHooks', async () => {
   const lambdaMock = jest.fn();
   const mockResponse = { name: 'test' };
