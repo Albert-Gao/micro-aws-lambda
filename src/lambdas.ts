@@ -45,13 +45,15 @@ export function lambdas<ResponseDataType = any, Shared = any>(
         middlewares,
       });
     } catch (error) {
-      console.log('error', error);
+      console.log('uncaught error', error);
       response = error as HttpError;
       isErrorResponse = true;
     } finally {
       const isJsError =
         response instanceof Error && typeof response.statusCode != 'number';
       if (isJsError) {
+        console.log('processed js error', response);
+
         return httpError({
           statusCode: 500,
           body: JSON.stringify({
