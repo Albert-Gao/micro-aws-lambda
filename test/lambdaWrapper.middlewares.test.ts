@@ -1,6 +1,6 @@
 import { lambdas } from '../src';
 import { success } from '../src/httpResponse';
-const LambdaTester = require('lambda-tester');
+import { invokeHandler } from './testResources';
 
 it('should return the 1st response from handler', async () => {
   const lambdaMock = jest.fn();
@@ -8,9 +8,9 @@ it('should return the 1st response from handler', async () => {
 
   const testHandler = lambdas([() => firstResponse, lambdaMock]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
-  expect(lambdaMock).not.toBeCalled();
+  expect(lambdaMock).not.toHaveBeenCalled();
   expect(response).toEqual({
     body: firstResponse,
     headers: {
@@ -28,9 +28,9 @@ it('should return array from handler', async () => {
 
   const testHandler = lambdas([() => firstResponse, lambdaMock]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
-  expect(lambdaMock).not.toBeCalled();
+  expect(lambdaMock).not.toHaveBeenCalled();
   expect(response).toEqual({
     body: JSON.stringify(firstResponse),
     headers: {
@@ -53,9 +53,9 @@ it('should return the error being thrown from the 1st middleware', async () => {
     lambdaMock,
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
-  expect(lambdaMock).not.toBeCalled();
+  expect(lambdaMock).not.toHaveBeenCalled();
   expect(response).toEqual({
     body: JSON.stringify(mockError),
     headers: {
@@ -78,9 +78,9 @@ it('should return an response when throwing', async () => {
     lambdaMock,
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
-  expect(lambdaMock).not.toBeCalled();
+  expect(lambdaMock).not.toHaveBeenCalled();
   expect(response).toEqual({
     body: JSON.stringify(mockResult),
     headers: {
@@ -103,9 +103,9 @@ it('should return an Error response from afterHooks', async () => {
     },
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
-  expect(lambdaMock).toBeCalledTimes(1);
+  expect(lambdaMock).toHaveBeenCalledTimes(1);
   expect(response).toEqual({
     body: JSON.stringify(mockError),
     headers: {
@@ -127,9 +127,9 @@ it('should return JS Error as response', async () => {
     },
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
-  expect(lambdaMock).toBeCalledTimes(1);
+  expect(lambdaMock).toHaveBeenCalledTimes(1);
   expect(response).toMatchObject({
     body: JSON.stringify({ errorName: 'Error', message: 'sigh' }),
     headers: {
@@ -147,9 +147,9 @@ it('should return a normal response from afterHooks', async () => {
 
   const testHandler = lambdas([lambdaMock, () => mockResponse]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
-  expect(lambdaMock).toBeCalledTimes(1);
+  expect(lambdaMock).toHaveBeenCalledTimes(1);
   expect(response).toEqual({
     body: JSON.stringify(mockResponse),
     headers: {
@@ -198,17 +198,17 @@ it('should call middlewares one by one', async () => {
     middleware7,
   ]);
 
-  const result = await LambdaTester(testHandler).expectResult();
+  const result = await invokeHandler(testHandler);
 
   expect(orders).toEqual([1, 2, 3, 4, 5, 6, 7]);
 
-  expect(middleware1).toBeCalledTimes(1);
-  expect(middleware2).toBeCalledTimes(1);
-  expect(middleware3).toBeCalledTimes(1);
-  expect(middleware4).toBeCalledTimes(1);
-  expect(middleware5).toBeCalledTimes(1);
-  expect(middleware6).toBeCalledTimes(1);
-  expect(middleware7).toBeCalledTimes(1);
+  expect(middleware1).toHaveBeenCalledTimes(1);
+  expect(middleware2).toHaveBeenCalledTimes(1);
+  expect(middleware3).toHaveBeenCalledTimes(1);
+  expect(middleware4).toHaveBeenCalledTimes(1);
+  expect(middleware5).toHaveBeenCalledTimes(1);
+  expect(middleware6).toHaveBeenCalledTimes(1);
+  expect(middleware7).toHaveBeenCalledTimes(1);
 
   // because nothing is returned from middleware, so default value {} should be used
   expect(result.body).toEqual('{}');
@@ -222,7 +222,7 @@ it('should call async function without problems', async () => {
 
   const testHandler = lambdas([lambdaMock, beforeMock]);
 
-  const result = await LambdaTester(testHandler).expectResult();
+  const result = await invokeHandler(testHandler);
 
   expect(result).toEqual({
     body: JSON.stringify(mockResponse),
@@ -243,7 +243,7 @@ test('passDownObj should work', async () => {
     ({ shared }) => shared,
   ]);
 
-  const result = await LambdaTester(testHandler).expectResult();
+  const result = await invokeHandler(testHandler);
 
   expect(result).toEqual({
     body: JSON.stringify({ name: 'albert' }),
