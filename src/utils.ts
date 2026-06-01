@@ -12,6 +12,8 @@ import {
 } from './httpResponse';
 
 type ApiGatewayEvent = APIGatewayProxyEvent | APIGatewayProxyEventV2;
+type Logger = Pick<Console, 'log'>;
+type HeaderMap = { [name: string]: string | string[] | undefined };
 
 const isApiGatewayV2Event = (
   event: ApiGatewayEvent
@@ -21,6 +23,53 @@ const isApiGatewayV2Event = (
 type ResponseWithStatusCode = {
   statusCode?: unknown;
 };
+
+const redactedValue = '[REDACTED]';
+const sensitiveHeaderNames = [
+  'authorization',
+  'cookie',
+  'proxy-authorization',
+  'set-cookie',
+  'x-api-key',
+];
+
+const getHeader = (
+  headers: { [name: string]: string | undefined } | undefined,
+  headerName: string
+) => {
+  const safeHeaders = headers ?? {};
+  const lowerCaseHeaderName = headerName.toLowerCase();
+  const headerKey = Object.keys(safeHeaders).find(
+    key => key.toLowerCase() === lowerCaseHeaderName
+  );
+
+  return headerKey ? safeHeaders[headerKey] ?? '' : '';
+};
+
+const redactHeaders = (headers?: HeaderMap) => {
+  if (headers == null) {
+    return headers;
+  }
+
+  return Object.keys(headers).reduce((result, headerName) => {
+    const shouldRedact = sensitiveHeaderNames.includes(
+      headerName.toLowerCase()
+    );
+
+    return {
+      ...result,
+      [headerName]: shouldRedact ? redactedValue : headers[headerName],
+    };
+  }, {} as HeaderMap);
+};
+
+const redactEventForLogging = (event: ApiGatewayEvent) => ({
+  ...event,
+  headers: redactHeaders(event.headers),
+  ...('multiValueHeaders' in event
+    ? { multiValueHeaders: redactHeaders(event.multiValueHeaders) }
+    : {}),
+});
 
 export async function funcQueueExecutor<
   Shared,
@@ -57,21 +106,28 @@ export async function funcQueueExecutor<
 
 export const createTraceInfo = (event: ApiGatewayEvent, context: Context) => {
   if (isApiGatewayV2Event(event)) {
+    const domainName = event.requestContext.domainName ?? '';
+    const path = event.requestContext.http.path ?? '';
+
     return {
-      endpoint: event.requestContext.domainName,
+      endpoint: `${domainName}${path}`,
       routeKey: event.requestContext.routeKey,
       requestBody: event.body || '',
       requestMethod: event.requestContext.http.method,
       requestId: event.requestContext.requestId,
+      requestPath: path,
+      domainName,
     };
   } else {
+    const domainName = event.requestContext.domainName ?? '';
+    const path = event.requestContext.path ?? '';
+
     return {
-      endpoint:
-        event.requestContext.domainName ?? '' + event.requestContext.path,
+      endpoint: `${domainName}${path}`,
       requestBody: event.body || '',
       requestMethod: event.requestContext.httpMethod,
 
-      country: event.headers['CloudFront-Viewer-Country'] ?? '',
+      country: getHeader(event.headers, 'CloudFront-Viewer-Country'),
       lambdaRequestId: context.awsRequestId,
       logStreamName: context.logStreamName,
       logGroupName: context.logGroupName,
@@ -110,10 +166,14 @@ export const addTraceInfoToResponseBody = (
   };
 };
 
-export const logRequestInfo = (event: ApiGatewayEvent, context: Context) => {
-  console.log('Aws-Api-Gateway-Request-Id: ', event.requestContext.requestId);
-  console.log('EVENT: ', event);
-  console.log('CONTEXT: ', context);
+export const logRequestInfo = (
+  event: ApiGatewayEvent,
+  context: Context,
+  logger: Logger = console
+) => {
+  logger.log('Aws-Api-Gateway-Request-Id: ', event.requestContext.requestId);
+  logger.log('EVENT: ', redactEventForLogging(event));
+  logger.log('CONTEXT: ', context);
 };
 
 export const transformResponseToHttpResponse = (

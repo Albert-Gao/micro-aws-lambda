@@ -100,7 +100,18 @@ it('should log when config.logRequestInfo sets to true', async () => {
     'Aws-Api-Gateway-Request-Id: ',
     mockEvent.requestContext.requestId
   );
-  expect(consoleLogMock).toHaveBeenNthCalledWith(2, 'EVENT: ', mockEvent);
+  expect(consoleLogMock).toHaveBeenNthCalledWith(
+    2,
+    'EVENT: ',
+    expect.objectContaining({
+      headers: expect.objectContaining({
+        Authorization: '[REDACTED]',
+      }),
+      multiValueHeaders: expect.objectContaining({
+        Authorization: '[REDACTED]',
+      }),
+    })
+  );
   expect(consoleLogMock).toHaveBeenNthCalledWith(
     3,
     'CONTEXT: ',
