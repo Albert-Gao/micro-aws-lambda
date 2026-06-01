@@ -1,6 +1,8 @@
 import { APIGatewayProxyResult } from 'aws-lambda';
 import { IHttpResponseLegacy as IHttpResponse } from './types';
 
+type Headers = NonNullable<APIGatewayProxyResult['headers']>;
+
 interface HttpResponseParams<BodyType> {
   statusCode?: number;
   body: BodyType;
@@ -15,17 +17,16 @@ const commonHeaders = {
   'Content-Type': 'application/json',
 };
 
-const getMergedHeaders = (headers?: APIGatewayProxyResult['headers']) =>
-  headers
-    ? {
-        ...commonHeaders,
-        ...headers,
-      }
-    : commonHeaders;
+const getMergedHeaders = (
+  headers?: APIGatewayProxyResult['headers']
+): Headers => ({
+  ...commonHeaders,
+  ...headers,
+});
 
 export class HttpError extends Error {
   statusCode: number;
-  headers = commonHeaders;
+  headers: Headers;
   body: any;
   multiValueHeaders: APIGatewayProxyResult['multiValueHeaders'];
   isBase64Encoded: APIGatewayProxyResult['isBase64Encoded'];
@@ -42,10 +43,7 @@ export class HttpError extends Error {
 
     this.statusCode = statusCode || 400;
     this.body = body;
-
-    if (headers) {
-      this.headers = getMergedHeaders(headers);
-    }
+    this.headers = getMergedHeaders(headers);
 
     if (multiValueHeaders) {
       this.multiValueHeaders = multiValueHeaders;
@@ -85,7 +83,7 @@ export const httpError = <BodyType>({
   new HttpError({
     statusCode: statusCode || 400,
     body,
-    headers: getMergedHeaders(headers),
+    headers,
     multiValueHeaders,
     isBase64Encoded,
   });
@@ -133,6 +131,7 @@ export const isHttpResponse = (
   response: any
 ): response is APIGatewayProxyResult =>
   typeof response === 'object' &&
+  response !== null &&
   'statusCode' in response &&
   'headers' in response &&
   'body' in response;

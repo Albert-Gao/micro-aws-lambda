@@ -2,6 +2,7 @@ import {
   buildResponseObject,
   HttpError,
   httpError,
+  isHttpResponse,
   success,
   httpResponse,
   HttpResponse,
@@ -196,6 +197,15 @@ test('buildResponseObject should set default statusCode to 200', () => {
   expect(res.statusCode).toBe(200);
 });
 
+test('buildResponseObject should not share default headers between responses', () => {
+  const first = buildResponseObject({ body: { message: true } });
+  first.headers!['Content-Type'] = 'text/plain';
+
+  const second = buildResponseObject({ body: { message: true } });
+
+  expect(second.headers!['Content-Type']).toBe('application/json');
+});
+
 test('buildResponseObject should honor multiValueHeaders', () => {
   const mockBody = { message: 'test' };
   const multiValueHeaders = {
@@ -312,4 +322,8 @@ test('httpResponse should set default statusCode to 200', () => {
 test('success should set default statusCode to 200', () => {
   const res = success({ body: { message: true } });
   expect(res.statusCode).toBe(200);
+});
+
+test('isHttpResponse should return false for null', () => {
+  expect(isHttpResponse(null)).toBe(false);
 });

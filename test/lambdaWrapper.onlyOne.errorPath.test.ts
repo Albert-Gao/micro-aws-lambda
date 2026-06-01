@@ -140,6 +140,26 @@ test('the response from Promise.reject should be 400 rather than 200 even when n
   });
 });
 
+test('throwing null should return a 400 response', async () => {
+  const testHandler = lambdas([
+    () => {
+      throw null;
+    },
+  ]);
+
+  const response = await invokeHandler(testHandler);
+
+  expect(response).toEqual({
+    body: 'null',
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 400,
+  });
+});
+
 test('statusCode from Promise.reject should be used', async () => {
   const mockResponse = { statusCode: 401, message: 'awesome' };
 
