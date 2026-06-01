@@ -2,7 +2,7 @@
   "name": "micro-aws-lambda",
   "author": "Albert Gao",
   "module": "dist/index.mjs",
-  "version": "5.3.3",
+  "version": "5.5.0",
   "license": "MIT",
   "engines": {
     "node": ">=18"
