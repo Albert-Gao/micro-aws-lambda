@@ -5,4 +5,3 @@ dist
 coverage/
 .idea/
 .npmrc
-jest.config.js
