@@ -143,7 +143,7 @@ export const handler = lambdas([extractUserFromEvent, parseUserData]);
 
 And later on, if there are any lambda handler needs that `extractUserFromEvent`, you just reuse that piece anywhere you want!
 
-> the default `Middleware` is for `APIGatewayProxyHandlerV2` from `@types/aws-lambda`. If you are using the Lambda Proxy mode, please import `MiddlewareLegacy`, otherwise,
+> the default `Middleware` matches the REST API/Lambda Proxy handler returned by `lambdas`. For HTTP API v2 middleware types, import `MiddlewareV2`.
 
 ### 4. Two minutes master
 
@@ -238,4 +238,3 @@ It will `console.log`:
 ## Credits
 
 - The initial version is heavily inspired by my favourite REST framework: [Feathers.JS](https://feathersjs.com/)
-- This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).

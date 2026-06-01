@@ -1,6 +1,6 @@
 import { httpResponse, success } from '../src/httpResponse';
 import { lambdas, Middleware } from '../src';
-const LambdaTester = require('lambda-tester');
+import { invokeHandler } from './testResources';
 
 it('should return an json response when returning a plain object', async () => {
   const mockResponse = { message: true };
@@ -9,7 +9,7 @@ it('should return an json response when returning a plain object', async () => {
 
   const testHandler = lambdas([testMiddleware]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     body: JSON.stringify(mockResponse),
@@ -29,7 +29,7 @@ it('should return an json response when using success()', async () => {
     () => success(mockResponse, { statusCode: 203 }),
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     body: JSON.stringify(mockResponse),
@@ -49,27 +49,7 @@ it('should return an json response when using httpResponse()', async () => {
     () => httpResponse({ statusCode: 201, body: mockResponse }),
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
-
-  expect(response).toEqual({
-    body: JSON.stringify(mockResponse),
-    headers: {
-      'Access-Control-Allow-Credentials': true,
-      'Access-Control-Allow-Origin': '*',
-      'Content-Type': 'application/json',
-    },
-    statusCode: 201,
-  });
-});
-
-it('should return an json response when using httpResponse()', async () => {
-  const mockResponse = { message: true };
-
-  const testHandler = lambdas([
-    () => httpResponse({ statusCode: 201, body: mockResponse }),
-  ]);
-
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     body: JSON.stringify(mockResponse),
@@ -87,7 +67,7 @@ it('should return a string when returning a string', async () => {
 
   const testHandler = lambdas([() => mockResponse]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     body: mockResponse,
@@ -105,7 +85,7 @@ it('should return a JSON string when returning a number', async () => {
 
   const testHandler = lambdas([() => mockResponse]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     body: JSON.stringify(mockResponse),
@@ -123,7 +103,7 @@ it('should return a JSON string when returning a boolean', async () => {
 
   const testHandler = lambdas([() => mockResponse]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     body: JSON.stringify(mockResponse),
@@ -141,7 +121,7 @@ it('should return a JSON string when returning an array', async () => {
 
   const testHandler = lambdas([() => mockResponse]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     body: JSON.stringify(mockResponse),

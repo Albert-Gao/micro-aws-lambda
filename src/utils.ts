@@ -11,22 +11,36 @@ import {
   buildResponseObject,
 } from './httpResponse';
 
-export async function funcQueueExecutor<Shared, ResponseDataType>({
+type ApiGatewayEvent = APIGatewayProxyEvent | APIGatewayProxyEventV2;
+
+const isApiGatewayV2Event = (
+  event: ApiGatewayEvent
+): event is APIGatewayProxyEventV2 =>
+  'version' in event && event.version === '2.0';
+
+type ResponseWithStatusCode = {
+  statusCode?: unknown;
+};
+
+export async function funcQueueExecutor<
+  Shared,
+  ResponseDataType,
+  Event extends ApiGatewayEvent = APIGatewayProxyEvent
+>({
   event,
   context,
   middlewares,
 }: {
-  event: APIGatewayProxyEvent | APIGatewayProxyEventV2;
+  event: Event;
   context: Context;
-  middlewares: Middleware<Shared, ResponseDataType>[];
+  middlewares: Middleware<Shared, ResponseDataType, Event>[];
 }) {
-  let returnValue = {};
+  let returnValue: IHttpResponse<ResponseDataType> | ResponseDataType | {} = {};
 
   let shared = {} as Shared;
 
   for (let middleware of middlewares) {
     const result = await middleware({
-      // @ts-ignore
       event,
       context,
       shared,
@@ -41,40 +55,34 @@ export async function funcQueueExecutor<Shared, ResponseDataType>({
   return returnValue;
 }
 
-export const createTraceInfo = (event: any, context: Context) => {
-  // @ts-ignore
-  if (event.version === '2.0') {
-    const typedEvent = event as APIGatewayProxyEventV2;
-
+export const createTraceInfo = (event: ApiGatewayEvent, context: Context) => {
+  if (isApiGatewayV2Event(event)) {
     return {
-      endpoint: typedEvent.requestContext.domainName,
-      routeKey: typedEvent.requestContext.routeKey,
-      requestBody: typedEvent.body || '',
-      requestMethod: typedEvent.requestContext.http.method,
+      endpoint: event.requestContext.domainName,
+      routeKey: event.requestContext.routeKey,
+      requestBody: event.body || '',
+      requestMethod: event.requestContext.http.method,
       requestId: event.requestContext.requestId,
     };
   } else {
-    const typedEvent = event as APIGatewayProxyEvent;
-
     return {
       endpoint:
-        typedEvent.requestContext.domainName ??
-        '' + typedEvent.requestContext.path,
-      requestBody: typedEvent.body || '',
-      requestMethod: typedEvent.requestContext.httpMethod,
+        event.requestContext.domainName ?? '' + event.requestContext.path,
+      requestBody: event.body || '',
+      requestMethod: event.requestContext.httpMethod,
 
-      country: typedEvent.headers['CloudFront-Viewer-Country'] ?? '',
+      country: event.headers['CloudFront-Viewer-Country'] ?? '',
       lambdaRequestId: context.awsRequestId,
       logStreamName: context.logStreamName,
       logGroupName: context.logGroupName,
-      apiGatewayId: typedEvent.requestContext.requestId,
+      apiGatewayId: event.requestContext.requestId,
     };
   }
 };
 
 export const addTraceInfoToResponseBody = (
   responseBody: string | number | boolean | any[] | object,
-  event: APIGatewayProxyEvent,
+  event: ApiGatewayEvent,
   context: Context
 ):
   | {
@@ -102,20 +110,17 @@ export const addTraceInfoToResponseBody = (
   };
 };
 
-export const logRequestInfo = (
-  event: APIGatewayProxyEvent | APIGatewayProxyEventV2,
-  context: Context
-) => {
+export const logRequestInfo = (event: ApiGatewayEvent, context: Context) => {
   console.log('Aws-Api-Gateway-Request-Id: ', event.requestContext.requestId);
   console.log('EVENT: ', event);
   console.log('CONTEXT: ', context);
 };
 
 export const transformResponseToHttpResponse = (
-  response: HttpError | IHttpResponse,
+  response: HttpError | IHttpResponse | unknown,
   shouldAddErrorStatusCode: boolean
 ): IHttpResponse => {
-  let result = response;
+  let result: HttpError | IHttpResponse | unknown = response;
 
   if (isHttpError(response)) {
     result = response.toHttpResponse();
@@ -126,11 +131,14 @@ export const transformResponseToHttpResponse = (
     });
   }
 
-  // @ts-ignore
-  const isStatusCodeSet = typeof response.statusCode === 'number';
+  const isStatusCodeSet =
+    typeof response === 'object' &&
+    response !== null &&
+    typeof (response as ResponseWithStatusCode).statusCode === 'number';
   if (isStatusCodeSet) {
-    // @ts-ignore
-    result.statusCode = response.statusCode as number;
+    (result as IHttpResponse).statusCode = (response as {
+      statusCode: number;
+    }).statusCode;
   }
 
   return result as IHttpResponse;

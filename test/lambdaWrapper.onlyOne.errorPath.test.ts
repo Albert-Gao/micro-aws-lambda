@@ -1,9 +1,6 @@
-// TODO: test if we can return non object
-
 import { httpError } from '../src/httpResponse';
 import { lambdas } from '../src/lambdas';
-
-const LambdaTester = require('lambda-tester');
+import { invokeHandler } from './testResources';
 
 it('should return error when throwing httpError', async () => {
   const mockResponse = { message: true };
@@ -14,7 +11,7 @@ it('should return error when throwing httpError', async () => {
     },
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     statusCode: 402,
@@ -34,7 +31,7 @@ it('should return error when returning httpError', async () => {
     () => httpError({ statusCode: 403, body: mockResponse }),
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     statusCode: 403,
@@ -54,7 +51,7 @@ it('should return a plain 500 response when throwing a JavaScript Error', async 
     },
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     statusCode: 500,
@@ -78,7 +75,7 @@ it('should keep thrown plain values as 400 error responses', async () => {
     },
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     statusCode: 400,
@@ -94,7 +91,7 @@ it('should keep thrown plain values as 400 error responses', async () => {
 it('should return success() run even when no middlewares is passing', async () => {
   const testHandler = lambdas();
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     statusCode: 200,
@@ -110,7 +107,7 @@ it('should return success() run even when no middlewares is passing', async () =
 it('should return success() run even when middlewares is empty', async () => {
   const testHandler = lambdas([]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     statusCode: 200,
@@ -130,7 +127,7 @@ test('the response from Promise.reject should be 400 rather than 200 even when n
 
   const testHandler = lambdas([middleware2]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     body: JSON.stringify(mockResponse),
@@ -150,7 +147,7 @@ test('statusCode from Promise.reject should be used', async () => {
 
   const testHandler = lambdas([middleware2]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     body: JSON.stringify(mockResponse),
@@ -175,7 +172,7 @@ test('explicit isBase64Encoded false should be preserved', async () => {
     }),
   ]);
 
-  const response = await LambdaTester(testHandler).expectResult();
+  const response = await invokeHandler(testHandler);
 
   expect(response).toEqual({
     statusCode: 200,
