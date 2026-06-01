@@ -19,11 +19,9 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "moduleResolution": "node",
-    "baseUrl": "./",
-    "paths": {
-      "*": ["src/*", "node_modules/*"]
-    },
+    "moduleResolution": "bundler",
+    "ignoreDeprecations": "6.0",
+    "types": ["jest", "node"],
     "jsx": "react",
     "esModuleInterop": true
   }
