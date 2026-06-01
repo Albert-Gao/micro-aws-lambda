@@ -1,240 +1,280 @@
 # Micro AWS Lambda
 
-<img src='https://github.com/Albert-Gao/micro-aws-lambda/blob/master/logo.png?raw=true' maxWidth="100%" height='auto' />
+<img src="https://github.com/Albert-Gao/micro-aws-lambda/blob/master/logo.png?raw=true" maxWidth="100%" height="auto" />
 
 <p align="center" style="letter-spacing: 8px;">
-
   <a href="https://www.npmjs.com/package/micro-aws-lambda" alt="npm package">
-    <img src="https://badgen.net/npm/v/micro-aws-lambda?icon=npm"/>
+    <img src="https://badgen.net/npm/v/micro-aws-lambda?icon=npm" />
   </a>
-
-  <a href="https://github.com/Albert-Gao/micro-aws-lambda/actions" alt="combined checks">
-    <img src="https://badgen.net/github/checks/albert-gao/micro-aws-lambda?label=ci"/>
+  <a href="https://github.com/Albert-Gao/micro-aws-lambda" alt="last commit">
+    <img src="https://badgen.net/github/last-commit/albert-gao/micro-aws-lambda" />
   </a>
-
-  <a href="https://github.com/Albert-Gao/micro-aws-lambda" alt="last commits">
-    <img src="https://badgen.net/github/last-commit/albert-gao/micro-aws-lambda"/>
+  <a href="https://github.com/Albert-Gao/micro-aws-lambda/blob/master/LICENSE" alt="license">
+    <img src="https://badgen.net/npm/license/micro-aws-lambda" />
   </a>
-
-  <a href="https://github.com/Albert-Gao/micro-aws-lambda" alt="licence">
-    <img src="https://badgen.net/npm/license/micro-aws-lambda"/>
-  </a>
-
-  <a href="https://coveralls.io/github/Albert-Gao/micro-aws-lambda" alt="test coverage">
-    <img src="https://badgen.net/coveralls/c/github/Albert-Gao/micro-aws-lambda"/>
-  </a>
-
   <a href="https://www.npmjs.com/package/micro-aws-lambda" alt="types">
-    <img src="https://badgen.net/npm/types/micro-aws-lambda"/>
+    <img src="https://badgen.net/npm/types/micro-aws-lambda" />
   </a>
-
-  <a href="https://bundlephobia.com/result?p=micro-aws-lambda@latest" alt="minified">
-    <img src="https://badgen.net/bundlephobia/min/micro-aws-lambda"/>
-  </a>
-
-  <a href="https://bundlephobia.com/result?p=micro-aws-lambda@latest" alt="minified + gzip">
-    <img src="https://badgen.net/bundlephobia/minzip/micro-aws-lambda"/>
-  </a>
-
-  <a href="https://twitter.com/albertgao" alt="twitter">
-    <img src="https://badgen.net/twitter/follow/albertgao"/>
-  </a>
-
 </p>
 
-## Intro
+`micro-aws-lambda` is a small TypeScript middleware wrapper for AWS Lambda
+handlers behind API Gateway. It runs middleware functions one by one, stops on
+the first returned value or thrown error, and converts the result into an API
+Gateway-compatible HTTP response.
 
-- For Lambda Proxy / Http API mode
-- Written in Typescript
-- Zero runtime dependencies
-- Tiny: 4.7KB after minified
-- Rapid middlewares
-  - simple reasoning, just running one by one
-  - early exit with `throw` or `return` anything
-  - pass values among middlewares
-- Return response
-  - an object, it will be converted to a Lambda compatible response
-  - a customizable `httpResponse()` / `success()` (200)
-  - a customizable `httpError()` / `badRequest()` (400) / `internalError()` (500)
-  - or string, number, boolean
-- Easy debug:
-  - Adding debug info to response object
-  - console.log event / context
+## Features
 
-## Why do you build this lib
+- API Gateway proxy responses with JSON headers and CORS defaults.
+- Sequential middleware flow with early exit by `return` or `throw`.
+- A shared object for passing state between middleware functions in one request.
+- Response helpers for success, custom responses, and common HTTP errors.
+- Optional request logging and trace information in response bodies.
+- Zero runtime dependencies.
 
-AWS Lambda is making it a flash to creating an API endpoint. But that's just the infrastructure part. It doesn't mean your business logic can be simplified.
+## Install
 
-- I need a middleware setup to decouple my business logic without installing a lib that has many dependencies and result in a bigger bundle size as well.
-- I want to deal with a simple interface, where the order is just one by one. I don't want to deal with a mental model where a middleware will be invoked twice for both stages, and handle both the `before` and `after` stage in one function.
-
-## What problems does it solve
-
-Middleware is for decoupling logic. I learned the value of `beforeHooks` and `afterHooks` after adopting [Feathers.JS](https://feathersjs.com/). Which has a beautiful concept of 3 layers for every endpoint, and I found myself start the declarative programming for the backend. No more code for the repeating work. In `micro-aws-lambda`'s context, it is just an array of `Middleware`.
-
-Let's say a simple return-a-user endpoint, what does it look like when you are using `micro-aws-lambda`
-
-```javascript
-const handler = lambdas([
-  validateRequestBody(GetUserSchema),
-  isStillEmployed,
-  verifyPaymentStatus,
-  justReturnUserObjectDirectlyFromDB,
-  removeFieldsFromResponse('password', 'address'),
-  combineUserNames,
-  transformResponseToClientSideStructure,
-]);
+```sh
+npm install micro-aws-lambda
 ```
 
-Ideally, you can just compose your future lambda without writing any code except for an integration test. The logic will be declarative. Every middleware here can be fully tested and ready to reuse.
-
-## Usage
-
-### 1. Install
-
-`npm install micro-aws-lambda`
-
-### 2. Quick start
+## Quick Start
 
 ```typescript
 import { lambdas } from 'micro-aws-lambda';
 
-const handler = lambdas([() => ({ message: 'it works' })]);
-
-// call the API, you will get json response: { message: "it works" }
+export const handler = lambdas([
+  () => ({ message: 'it works' }),
+]);
 ```
 
-### 3. The usage of Typescript
+The value returned by the middleware becomes a `200` response. Object and array
+bodies are JSON stringified before the Lambda handler returns.
+
+## API Gateway v1 and v2
+
+The runtime path accepts both API Gateway REST API proxy events (`version:
+'1.0'`, commonly called v1) and HTTP API proxy events (`version: '2.0'`,
+commonly called v2). Trace information is generated differently for each event
+shape.
+
+The default `Middleware` type matches the REST API/Lambda Proxy handler returned
+by `lambdas`. You can also import `MiddlewareLegacy` for the same v1 event
+shape, or `MiddlewareV2` when you are writing reusable middleware that reads HTTP
+API v2 event fields.
 
 ```typescript
-import { lambdas, Middleware, HttpResponse } from 'micro-aws-lambda';
+import { lambdas, Middleware } from 'micro-aws-lambda';
 
-interface Shared {
-  user: { id: string; group: string };
-}
+const readV1Method: Middleware = ({ event }) => ({
+  method: event.httpMethod,
+  path: event.path,
+});
 
-interface Response {
+export const handler = lambdas([readV1Method]);
+```
+
+For v2 HTTP API middleware, use `MiddlewareV2`:
+
+```typescript
+import { MiddlewareV2 } from 'micro-aws-lambda';
+
+export const readV2Route: MiddlewareV2 = ({ event }) => ({
+  method: event.requestContext.http.method,
+  routeKey: event.requestContext.routeKey,
+});
+```
+
+## Middleware Flow
+
+Each middleware receives `{ event, context, shared }`.
+
+```typescript
+import { lambdas, Middleware } from 'micro-aws-lambda';
+
+type Shared = {
+  user?: { id: string; group: string };
+};
+
+type ResponseBody = {
   isPassing: boolean;
-}
-
-const extractUserFromEvent: Middleware<Shared, Response> = async ({
-  event,
-  shared,
-}) => {
-  const user = JSON.parse(event.body);
-
-  if (!user) {
-    throw HttpResponse.badRequest({ isPassing: false });
-  }
-
-  shared.user = user;
 };
 
-const parseUserData: Middleware<Shared, Response> = ({ shared }) => {
-  if (shared.user.id === 'bad-user-id') {
-    throw HttpResponse.badRequest({ isPassing: false });
+const extractUser: Middleware<Shared, ResponseBody> = ({ event, shared }) => {
+  if (!event.body) {
+    return { isPassing: false };
   }
 
-  return HttpResponse.success({ isPassing: true });
+  shared.user = JSON.parse(event.body);
 };
 
-export const handler = lambdas([extractUserFromEvent, parseUserData]);
+const authorizeUser: Middleware<Shared, ResponseBody> = ({ shared }) => {
+  if (shared.user?.id === 'blocked-user') {
+    return { isPassing: false };
+  }
+
+  return { isPassing: true };
+};
+
+export const handler = lambdas([extractUser, authorizeUser]);
 ```
 
-And later on, if there are any lambda handler needs that `extractUserFromEvent`, you just reuse that piece anywhere you want!
+Flow rules:
 
-> the default `Middleware` matches the REST API/Lambda Proxy handler returned by `lambdas`. For HTTP API v2 middleware types, import `MiddlewareV2`.
+- Middleware functions run in array order.
+- Returning any value other than `null` or `undefined` stops the chain.
+- Throwing any value stops the chain and treats the value as an error response.
+- Returning `null`, `undefined`, or nothing continues to the next middleware.
+- If no middleware returns a value, the response body is `{}`.
+- The `shared` object is created per invocation and reused across the chain.
 
-### 4. Two minutes master
+## Response Helpers
 
-- How to control the flow?
+Use `HttpResponse` when you need explicit status codes, headers,
+`multiValueHeaders`, or `isBase64Encoded`.
 
-  - `return` anything that is not `null` or `undefined` will STOP the execution
-  - `throw` will STOP the execution
-  - just `return` / `return null` / `return undefined` will NOT stop the execution, unless it's the last middleware
-  - if nothing is returning after invoking the last middleware, an empty object will be returned
-  - otherwise, the array of `Middleware` will just be executed one by one
-  - who returns the 1st wins, for example, `lambdas([m1, m2])`, if `m1` is returning something, it will be used as the http response and m2 will not be executed.
+```typescript
+import { HttpResponse, lambdas, Middleware } from 'micro-aws-lambda';
 
-- What can you `return`
+const createUser: Middleware = () => {
+  return HttpResponse.success(
+    { id: 'user-123' },
+    {
+      statusCode: 201,
+      headers: { 'X-Request-Source': 'signup' },
+    }
+  );
+};
 
-  - a `HttpResponse.response()`
-  - or a `HttpResponse.success()` (just a `HttpResponse.response()` with status code set to 200, you can still change it)
-  - or an plain object / string / number (which will be auto-wrapped with `HttpResponse.success()` in the end)
+export const handler = lambdas([createUser]);
+```
 
-* What can you `throw`
+Available helpers:
 
-  - `HttpResponse.error()`
-  - `HttpResponse.badRequest()`
-  - `HttpResponse.unauthorized()`
-  - `HttpResponse.forbidden()`
-  - `HttpResponse.notFound()`
-  - `HttpResponse.methodNotAllowed()`
-  - `HttpResponse.notAcceptable()`
-  - `HttpResponse.conflict()`
-  - `HttpResponse.internalError()`
-  - `HttpResponse.notImplemented()`
-  - `HttpResponse.badGateway()`
-  - `HttpResponse.serviceUnavailable()`
-  - `HttpResponse.gatewayTimeout()`
-  - `HttpResponse.networkAuthenticationRequire()`
-  - or anything else
+- `HttpResponse.response({ statusCode, body, headers })`
+- `HttpResponse.success(body, { statusCode, headers })`
+- `HttpResponse.error({ statusCode, body, headers })`
+- `HttpResponse.badRequest(body, options)`
+- `HttpResponse.unauthorized(body, options)`
+- `HttpResponse.forbidden(body, options)`
+- `HttpResponse.notFound(body, options)`
+- `HttpResponse.methodNotAllowed(body, options)`
+- `HttpResponse.notAcceptable(body, options)`
+- `HttpResponse.conflict(body, options)`
+- `HttpResponse.internalError(body, options)`
+- `HttpResponse.notImplemented(body, options)`
+- `HttpResponse.badGateway(body, options)`
+- `HttpResponse.serviceUnavailable(body, options)`
+- `HttpResponse.gatewayTimeout(body, options)`
+- `HttpResponse.networkAuthenticationRequire(body, options)`
 
-> Hover over the function will get a tooltip of the status code for this helper, also, you can pass a 2nd parameter to change the statusCode or headers as well
+Every response helper includes these default headers:
 
-- How to pass something down the chain,
-
-  - use `shared` from the parameter
-  - attach your value to it: `shared.myValue = 123`, `myValue` could be any name
-
-- Do I have to return something in the middleware
-
-  - No. For example, a validation middleware can only react to the wrong data without returning anything like `if (wrong) {throw badRequest()}`
-
-### 5. Actually, you can throw or return anything
-
-- `return` a plain `object` | `string` | `number` === (200) response
-- `throw` a plain `object` | `string` | `number` === (400) response
-- custom status code by adding `statusCode` property
-- Or use our built-in shortcut, `import {HttpResponse} from 'micro-aws-lambda'`, then `HttpResponse.success({body:{message:'wow'}})`
-
-### 6. Config
-
-#### 6.1 addTraceInfoToResponse
-
-It will add debug info into the response object
-
-```javascript
+```json
 {
-  debug: {
-    endpoint: "",
-    requestBody: "",
-    requestMethod: "",
-
-    country: "",
-    lambdaRequestId: "",
-    logStreamName: "",
-    logGroupName: "",
-    apiGatewayId: ""
-  }
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Credentials": true,
+  "Content-Type": "application/json"
 }
 ```
 
-#### 6.2 logRequestInfo
+Custom headers are merged over the defaults.
 
-It will `console.log`:
+## Error Defaults
 
-- `event`
-- `context`
+Thrown values are normalized into HTTP responses.
+
+- Throwing `HttpResponse.badRequest(...)` or another `HttpResponse` error helper
+  uses that helper's status code.
+- Throwing a plain object, string, number, boolean, or array becomes a `400`
+  response.
+- Throwing a JavaScript `Error` becomes a `500` response with `errorName` and
+  `message` in the JSON body.
+- Returning a plain object, string, number, boolean, or array becomes a `200`
+  response.
+- A plain returned or thrown value with a numeric `statusCode` property keeps
+  that status code.
+
+```typescript
+import { HttpResponse, lambdas, Middleware } from 'micro-aws-lambda';
+
+const requireBody: Middleware = ({ event }) => {
+  if (!event.body) {
+    throw HttpResponse.badRequest({ error: 'Missing request body' });
+  }
+};
+
+const finish: Middleware = () => ({ ok: true });
+
+export const handler = lambdas([requireBody, finish]);
+```
+
+## Logging
+
+Pass `logRequestInfo: true` to log request details with `console.log`.
+
+```typescript
+import { lambdas } from 'micro-aws-lambda';
+
+export const handler = lambdas(
+  [() => ({ ok: true })],
+  { logRequestInfo: true }
+);
+```
+
+The logger prints:
+
 - `Aws-Api-Gateway-Request-Id`
-- `Identity-Source-Ip`
+- `EVENT`
+- `CONTEXT`
 
-### 7. Migrating from v4
+## Trace Information
 
-- `passDownObj` has renamed to `shared`
-- `return` **STOPS** the execution now, like `throw`, makes the flow easier to reason about!
-- all `http` helpers can be used under `HttpResponse`, just import this one alone
+Pass `addTraceInfoToResponse: true` to add a `debug` object to the response
+body.
+
+```typescript
+import { lambdas } from 'micro-aws-lambda';
+
+export const handler = lambdas(
+  [() => ({ ok: true })],
+  { addTraceInfoToResponse: true }
+);
+```
+
+For object response bodies, `debug` is added alongside the existing fields. For
+primitive or array response bodies, the original value is wrapped as
+`{ response, debug }`.
+
+For v1 events, trace information includes:
+
+- `endpoint`
+- `requestBody`
+- `requestMethod`
+- `country`
+- `lambdaRequestId`
+- `logStreamName`
+- `logGroupName`
+- `apiGatewayId`
+
+For v2 events, trace information includes:
+
+- `endpoint`
+- `routeKey`
+- `requestBody`
+- `requestMethod`
+- `requestId`
+
+## Migration Notes
+
+When migrating from older versions:
+
+- `passDownObj` was renamed to `shared`.
+- Returning a non-null value now stops execution, the same as throwing.
+- HTTP helpers are available from the exported `HttpResponse` object.
+- `Middleware` and `MiddlewareLegacy` type v1 API Gateway events.
+- `MiddlewareV2` types HTTP API v2 events for reusable middleware.
 
 ## Credits
 
-- The initial version is heavily inspired by my favourite REST framework: [Feathers.JS](https://feathersjs.com/)
+- The initial version was inspired by [Feathers](https://feathersjs.com/).
+- This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
