@@ -4,6 +4,9 @@
   "module": "dist/micro-aws-lambda.esm.js",
   "version": "5.3.3",
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
