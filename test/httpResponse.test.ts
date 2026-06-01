@@ -154,6 +154,28 @@ test('HttpError.toHttpResponse should preserve isBase64Encoded false', () => {
   });
 });
 
+test('HttpError.toHttpResponse should preserve multiValueHeaders', () => {
+  const multiValueHeaders = {
+    'set-cookie': ['session=abc', 'theme=light'],
+  };
+  const err = new HttpError({
+    statusCode: 409,
+    body: { message: 'duplicate' },
+    multiValueHeaders,
+  });
+
+  expect(err.toHttpResponse()).toEqual({
+    body: { message: 'duplicate' },
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    multiValueHeaders,
+    statusCode: 409,
+  });
+});
+
 test('httpError should set default statusCode to 400', () => {
   const err = httpError({ body: { message: true } });
   expect(err.statusCode).toBe(400);
