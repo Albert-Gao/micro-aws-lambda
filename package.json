@@ -57,7 +57,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^18.19.130",
     "jest": "^30.4.2",
-    "jest-util": "^29.7.0",
+    "jest-util": "^30.4.1",
     "lambda-tester": "^4.0.1",
     "ts-jest": "^29.4.1",
     "tslib": "^2.8.1",
