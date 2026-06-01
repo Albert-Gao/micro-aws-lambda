@@ -238,4 +238,3 @@ It will `console.log`:
 ## Credits
 
 - The initial version is heavily inspired by my favourite REST framework: [Feathers.JS](https://feathersjs.com/)
-- This project was bootstrapped with [TSDX](https://github.com/jaredpalmer/tsdx).
