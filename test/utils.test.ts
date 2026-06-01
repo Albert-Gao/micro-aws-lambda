@@ -71,7 +71,7 @@ test('logRequestInfo should redact sensitive headers and support an injectable l
 
   logRequestInfo(mockEvent, mockContext, logger);
 
-  expect(logger.log).toBeCalledTimes(3);
+  expect(logger.log).toHaveBeenCalledTimes(3);
   expect(logger.log).toHaveBeenNthCalledWith(
     2,
     'EVENT: ',
