@@ -53,12 +53,12 @@ export function lambdas<ResponseDataType = any, Shared = any>(
       ) {
         console.log('processed js error', response);
 
-        return httpError({
+        response = httpError({
           statusCode: 500,
-          body: JSON.stringify({
+          body: {
             errorName: response.name,
             message: response.message,
-          }),
+          },
         });
       }
 
@@ -83,7 +83,7 @@ export function lambdas<ResponseDataType = any, Shared = any>(
         ...httpResponse,
       });
 
-      if (typeof result.body === 'object') {
+      if (typeof result.body !== 'string' && result.body !== undefined) {
         result.body = JSON.stringify(result.body);
       }
 

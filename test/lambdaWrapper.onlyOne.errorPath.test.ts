@@ -44,6 +44,50 @@ it('should return error when returning httpError', async () => {
   });
 });
 
+it('should return a plain 500 response when throwing a JavaScript Error', async () => {
+  const testHandler = lambdas([
+    () => {
+      throw new Error('boom');
+    },
+  ]);
+
+  const response = await invokeHandler(testHandler);
+
+  expect(response).toEqual({
+    statusCode: 500,
+    body: JSON.stringify({
+      errorName: 'Error',
+      message: 'boom',
+    }),
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+      'Content-Type': 'application/json',
+    },
+  });
+  expect(response).not.toBeInstanceOf(Error);
+});
+
+it('should keep thrown plain values as 400 error responses', async () => {
+  const testHandler = lambdas([
+    () => {
+      throw 'plain failure';
+    },
+  ]);
+
+  const response = await invokeHandler(testHandler);
+
+  expect(response).toEqual({
+    statusCode: 400,
+    body: 'plain failure',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+      'Content-Type': 'application/json',
+    },
+  });
+});
+
 it('should return success() run even when no middlewares is passing', async () => {
   const testHandler = lambdas();
 
@@ -113,5 +157,31 @@ test('statusCode from Promise.reject should be used', async () => {
       'Content-Type': 'application/json',
     },
     statusCode: 401,
+  });
+});
+
+test('explicit isBase64Encoded false should be preserved', async () => {
+  const testHandler = lambdas([
+    () => ({
+      statusCode: 200,
+      body: 'plain text',
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+      isBase64Encoded: false,
+    }),
+  ]);
+
+  const response = await invokeHandler(testHandler);
+
+  expect(response).toEqual({
+    statusCode: 200,
+    body: 'plain text',
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Credentials': true,
+      'Content-Type': 'text/plain',
+    },
+    isBase64Encoded: false,
   });
 });
