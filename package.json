@@ -12,7 +12,7 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "test": "tsdx test",
+    "test": "jest",
     "lint": "tsdx lint",
     "release": "np --no-publish",
     "coverage": "npm run test -- --coverage"
@@ -28,10 +28,32 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.[tj]sx?$": "babel-jest"
+    },
+    "testMatch": [
+      "**/test/**/*.test.ts"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts"
+    ],
+    "watchman": false
+  },
   "devDependencies": {
     "@babel/preset-typescript": "^7.14.5",
-    "@types/jest": "^26.0.23",
-    "lambda-tester": "^4.0.1",
+    "@types/jest": "^30.0.0",
+    "babel-jest": "^30.4.1",
+    "jest": "^30.4.2",
     "tsdx": "^0.14.1",
     "tslib": "^2.2.0",
     "typescript": "^4.3.2"

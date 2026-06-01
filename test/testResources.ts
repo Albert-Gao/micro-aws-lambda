@@ -1,4 +1,9 @@
-import { APIGatewayEvent, Context } from 'aws-lambda';
+import {
+  APIGatewayEvent,
+  APIGatewayProxyEventV2,
+  Context,
+  Handler,
+} from 'aws-lambda';
 
 export const getMockEvent = (): APIGatewayEvent => ({
   version: '1.0',
@@ -92,6 +97,57 @@ export const getMockEvent = (): APIGatewayEvent => ({
   body: null,
   isBase64Encoded: false,
 });
+
+export const getMockHttpApiEvent = (): APIGatewayProxyEventV2 => ({
+  version: '2.0',
+  routeKey: 'POST /company',
+  rawPath: '/company',
+  rawQueryString: '',
+  cookies: ['session=abc'],
+  headers: {
+    accept: '*/*',
+    authorization: 'Bearer ..4r----',
+    'content-type': 'application/json',
+    host: 'abc123.execute-api.us-east-1.amazonaws.com',
+  },
+  queryStringParameters: {
+    include: 'teams',
+  },
+  requestContext: {
+    accountId: '049606384301',
+    apiId: 'abc123',
+    domainName: 'abc123.execute-api.us-east-1.amazonaws.com',
+    domainPrefix: 'abc123',
+    http: {
+      method: 'POST',
+      path: '/company',
+      protocol: 'HTTP/1.1',
+      sourceIp: '115.188.84.216',
+      userAgent: 'PostmanRuntime/7.15.0',
+    },
+    requestId: 'a-v2-request',
+    routeKey: 'POST /company',
+    stage: '$default',
+    time: '07/Jul/2019:07:59:01 +0000',
+    timeEpoch: 1562486341343,
+  },
+  body: JSON.stringify({ name: 'Acme' }),
+  pathParameters: {
+    companyId: '123',
+  },
+  isBase64Encoded: false,
+  stageVariables: undefined,
+});
+
+export const invokeHandler = async <TResult = unknown>(
+  handler: Handler<any, TResult>,
+  event: APIGatewayEvent | APIGatewayProxyEventV2 = getMockEvent(),
+  context: Context = getMockContext()
+): Promise<TResult> => {
+  const result = await handler(event, context, () => undefined);
+
+  return result as TResult;
+};
 
 const opts = {
   region: 'us-west-1',
