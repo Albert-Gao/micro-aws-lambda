@@ -1,8 +1,11 @@
-// TODO: test if we can return non object
 import { lambdas } from '../src';
-import { getMockContext, getMockEvent } from './testResources';
+import {
+  getMockContext,
+  getMockEvent,
+  getMockHttpApiEvent,
+  invokeHandler,
+} from './testResources';
 import * as utils from '../src/utils';
-const LambdaTester = require('lambda-tester');
 
 it('should return an json response with traceInfo when config.addTraceInfoToResponse sets to true [response is non-object]', async () => {
   const mockResponse = 1234;
@@ -15,10 +18,7 @@ it('should return an json response with traceInfo when config.addTraceInfoToResp
   const mockContext = getMockContext();
   const traceInfo = utils.createTraceInfo(mockEvent, mockContext);
 
-  const response = await LambdaTester(testHandler)
-    .event(mockEvent)
-    .context(mockContext)
-    .expectResult();
+  const response = await invokeHandler(testHandler, mockEvent, mockContext);
 
   expect(response).toEqual({
     body: JSON.stringify({ response: mockResponse, debug: traceInfo }),
@@ -42,10 +42,31 @@ it('should return an json response with traceInfo when config.addTraceInfoToResp
   const mockContext = getMockContext();
   const traceInfo = utils.createTraceInfo(mockEvent, mockContext);
 
-  const response = await LambdaTester(testHandler)
-    .event(mockEvent)
-    .context(mockContext)
-    .expectResult();
+  const response = await invokeHandler(testHandler, mockEvent, mockContext);
+
+  expect(response).toEqual({
+    body: JSON.stringify({ ...mockResponse, debug: traceInfo }),
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 200,
+  });
+});
+
+it('should return an json response with HTTP API v2 traceInfo', async () => {
+  const mockResponse = { message: true };
+
+  const testHandler = lambdas([() => mockResponse], {
+    addTraceInfoToResponse: true,
+  });
+
+  const mockEvent = getMockHttpApiEvent();
+  const mockContext = getMockContext();
+  const traceInfo = utils.createTraceInfo(mockEvent, mockContext);
+
+  const response = await invokeHandler(testHandler, mockEvent, mockContext);
 
   expect(response).toEqual({
     body: JSON.stringify({ ...mockResponse, debug: traceInfo }),
@@ -70,13 +91,10 @@ it('should log when config.logRequestInfo sets to true', async () => {
   const mockEvent = getMockEvent();
   const mockContext = getMockContext();
 
-  await LambdaTester(testHandler)
-    .event(mockEvent)
-    .context(mockContext)
-    .expectResult();
+  await invokeHandler(testHandler, mockEvent, mockContext);
 
-  expect(logRequestInfoMock).toBeCalledTimes(1);
-  expect(consoleLogMock).toBeCalledTimes(3);
+  expect(logRequestInfoMock).toHaveBeenCalledTimes(1);
+  expect(consoleLogMock).toHaveBeenCalledTimes(3);
   expect(consoleLogMock).toHaveBeenNthCalledWith(
     1,
     'Aws-Api-Gateway-Request-Id: ',
