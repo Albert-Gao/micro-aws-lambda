@@ -6,9 +6,6 @@
   <a href="https://www.npmjs.com/package/micro-aws-lambda" alt="npm package">
     <img src="https://badgen.net/npm/v/micro-aws-lambda?icon=npm" />
   </a>
-  <a href="https://github.com/Albert-Gao/micro-aws-lambda" alt="last commit">
-    <img src="https://badgen.net/github/last-commit/albert-gao/micro-aws-lambda" />
-  </a>
   <a href="https://github.com/Albert-Gao/micro-aws-lambda/blob/master/LICENSE" alt="license">
     <img src="https://badgen.net/npm/license/micro-aws-lambda" />
   </a>
