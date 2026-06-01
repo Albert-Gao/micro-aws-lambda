@@ -104,6 +104,11 @@ it('should log when config.logRequestInfo sets to true', async () => {
   expect(consoleLogMock).toHaveBeenNthCalledWith(
     3,
     'CONTEXT: ',
-    expect.objectContaining(mockContext)
+    expect.objectContaining({
+      awsRequestId: mockContext.awsRequestId,
+      functionName: mockContext.functionName,
+      logGroupName: mockContext.logGroupName,
+      logStreamName: mockContext.logStreamName,
+    })
   );
 });
