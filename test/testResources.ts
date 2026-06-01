@@ -115,7 +115,9 @@ export const getMockHttpApiEvent = (): APIGatewayProxyEventV2 => ({
     accept: '*/*',
     authorization: 'Bearer ..4r----',
     'content-type': 'application/json',
+    'cloudfront-viewer-country': 'NZ',
     host: 'abc123.execute-api.us-east-1.amazonaws.com',
+    'x-api-key': 'secret-api-key',
   },
   queryStringParameters: {
     include: 'teams',
