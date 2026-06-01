@@ -14,11 +14,22 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    }
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
+  "sideEffects": false,
   "files": [
     "dist"
+  ],
+  "keywords": [
+    "aws",
+    "lambda",
+    "serverless",
+    "middleware",
+    "api-gateway",
+    "typescript"
   ],
   "scripts": {
     "start": "tsup --watch",
@@ -27,7 +38,10 @@
     "lint": "npm run typecheck",
     "typecheck": "tsc --noEmit",
     "release": "np --no-publish",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage",
+    "smoke:pack": "npm run build && npm pack --dry-run",
+    "smoke:cjs": "npm run build && node -e \"const pkg = require('./dist/index.js'); if (!pkg.lambdas || !pkg.HttpResponse) throw new Error('CJS exports missing');\"",
+    "smoke:esm": "npm run build && node --input-type=module -e \"const mod = await import('./dist/index.mjs'); if (!mod.lambdas || !mod.HttpResponse) throw new Error('ESM exports missing');\""
   },
   "repository": {
     "type": "git",
