@@ -7,7 +7,21 @@ import {
   HttpResponse,
 } from '../src/httpResponse';
 
-const { badRequest, internalError, notFound, unauthorized } = HttpResponse;
+const {
+  badRequest,
+  badGateway,
+  conflict,
+  forbidden,
+  gatewayTimeout,
+  internalError,
+  methodNotAllowed,
+  networkAuthenticationRequire,
+  notAcceptable,
+  notFound,
+  notImplemented,
+  serviceUnavailable,
+  unauthorized,
+} = HttpResponse;
 
 test('badRequest() should return an HTTPError', () => {
   const mockBody = { message: 'test' };
@@ -120,6 +134,25 @@ test('HttpError.toHttpResponse should return an plain object rather than an Erro
   expect(result.isBase64Encoded).toBeUndefined();
 });
 
+test('HttpError.toHttpResponse should preserve isBase64Encoded false', () => {
+  const err = new HttpError({
+    statusCode: 502,
+    body: 'plain text',
+    isBase64Encoded: false,
+  });
+
+  expect(err.toHttpResponse()).toEqual({
+    body: 'plain text',
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    isBase64Encoded: false,
+    statusCode: 502,
+  });
+});
+
 test('httpError should set default statusCode to 400', () => {
   const err = httpError({ body: { message: true } });
   expect(err.statusCode).toBe(400);
@@ -214,6 +247,25 @@ test('buildResponseObject should isBase64Encoded', () => {
   });
 });
 
+test('buildResponseObject should preserve isBase64Encoded false', () => {
+  const result = buildResponseObject({
+    statusCode: 300,
+    body: 'plain text',
+    isBase64Encoded: false,
+  });
+
+  expect(result).toEqual({
+    body: 'plain text',
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    isBase64Encoded: false,
+    statusCode: 300,
+  });
+});
+
 test('badRequest should set default statusCode to 400', () => {
   const res = badRequest({ message: true });
   expect(res.statusCode).toBe(400);
@@ -227,6 +279,24 @@ test('badRequest should set default statusCode to custom one', () => {
 test('badRequest should not change the body', () => {
   const res = badRequest({ message: true }, { statusCode: 500 });
   expect(res.body).toStrictEqual({ message: true });
+});
+
+test.each([
+  ['badRequest', badRequest, 400],
+  ['unauthorized', unauthorized, 401],
+  ['forbidden', forbidden, 403],
+  ['notFound', notFound, 404],
+  ['methodNotAllowed', methodNotAllowed, 405],
+  ['notAcceptable', notAcceptable, 406],
+  ['conflict', conflict, 409],
+  ['internalError', internalError, 500],
+  ['notImplemented', notImplemented, 501],
+  ['badGateway', badGateway, 502],
+  ['serviceUnavailable', serviceUnavailable, 503],
+  ['gatewayTimeout', gatewayTimeout, 504],
+  ['networkAuthenticationRequire', networkAuthenticationRequire, 511],
+])('%s should default to its statusCode', (_name, helper, statusCode) => {
+  expect(helper({ message: true }).statusCode).toBe(statusCode);
 });
 
 test('internalError should set default statusCode to 500', () => {

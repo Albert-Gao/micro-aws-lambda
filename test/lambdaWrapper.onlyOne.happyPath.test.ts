@@ -100,7 +100,7 @@ it('should return a string when returning a string', async () => {
   });
 });
 
-it('should return a number when returning a number', async () => {
+it('should return a JSON string when returning a number', async () => {
   const mockResponse = 8888;
 
   const testHandler = lambdas([() => mockResponse]);
@@ -108,7 +108,7 @@ it('should return a number when returning a number', async () => {
   const response = await LambdaTester(testHandler).expectResult();
 
   expect(response).toEqual({
-    body: mockResponse,
+    body: JSON.stringify(mockResponse),
     headers: {
       'Access-Control-Allow-Credentials': true,
       'Access-Control-Allow-Origin': '*',
@@ -118,7 +118,7 @@ it('should return a number when returning a number', async () => {
   });
 });
 
-it('should return a boolean when returning a boolean', async () => {
+it('should return a JSON string when returning a boolean', async () => {
   const mockResponse = true;
 
   const testHandler = lambdas([() => mockResponse]);
@@ -126,7 +126,25 @@ it('should return a boolean when returning a boolean', async () => {
   const response = await LambdaTester(testHandler).expectResult();
 
   expect(response).toEqual({
-    body: mockResponse,
+    body: JSON.stringify(mockResponse),
+    headers: {
+      'Access-Control-Allow-Credentials': true,
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+    statusCode: 200,
+  });
+});
+
+it('should return a JSON string when returning an array', async () => {
+  const mockResponse = ['a', 'b'];
+
+  const testHandler = lambdas([() => mockResponse]);
+
+  const response = await LambdaTester(testHandler).expectResult();
+
+  expect(response).toEqual({
+    body: JSON.stringify(mockResponse),
     headers: {
       'Access-Control-Allow-Credentials': true,
       'Access-Control-Allow-Origin': '*',

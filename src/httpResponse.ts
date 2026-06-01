@@ -67,7 +67,7 @@ export class HttpError extends Error {
       response.multiValueHeaders = this.multiValueHeaders;
     }
 
-    if (this.isBase64Encoded) {
+    if (typeof this.isBase64Encoded === 'boolean') {
       response.isBase64Encoded = this.isBase64Encoded;
     }
 
@@ -107,7 +107,7 @@ export function buildResponseObject<BodyType = any>({
     result.multiValueHeaders = multiValueHeaders;
   }
 
-  if (isBase64Encoded) {
+  if (typeof isBase64Encoded === 'boolean') {
     result.isBase64Encoded = isBase64Encoded;
   }
 
