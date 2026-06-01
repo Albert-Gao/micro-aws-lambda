@@ -273,6 +273,8 @@ When migrating from older versions:
 - HTTP helpers are available from the exported `HttpResponse` object.
 - `Middleware` and `MiddlewareLegacy` type v1 API Gateway events.
 - `MiddlewareV2` types HTTP API v2 events for reusable middleware.
+- See [Versioning and compatibility](docs/versioning-and-compatibility.md) for
+  modernization release classification and v5 upgrade notes.
 
 ## Credits
 
