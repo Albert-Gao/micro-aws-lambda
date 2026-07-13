@@ -62,7 +62,7 @@
     "ts-jest": "^29.4.1",
     "tslib": "^2.8.1",
     "tsup": "^8.5.1",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@types/aws-lambda": "^8.10.161"
